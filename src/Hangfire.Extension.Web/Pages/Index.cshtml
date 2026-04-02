@@ -1,0 +1,29 @@
+@page
+@model IndexModel
+@{
+    ViewData["Title"] = "Hangfire Extension";
+}
+
+<section class="hero">
+    <div class="hero-copy">
+        <p class="eyebrow">Internal admin utility</p>
+        <h1>Simple recurring job administration for Hangfire.</h1>
+        <p class="lede">
+            This sample host consumes the recurring jobs UI as an embedded ASP.NET Core package instead of owning
+            the pages directly.
+        </p>
+        <div class="hero-actions">
+            <a class="btn btn-primary btn-lg" href="/recurring-jobs">Open recurring jobs</a>
+        </div>
+    </div>
+    <div class="hero-panel">
+        <h2>MVP scope</h2>
+        <ul>
+            <li>View recurring jobs</li>
+            <li>Trigger on demand</li>
+            <li>Enable or disable safely</li>
+            <li>Update cron expressions with validation</li>
+            <li>Embed the UI with <code>MapHangfireExtension</code></li>
+        </ul>
+    </div>
+</section>

@@ -1,0 +1,259 @@
+:root {
+  --panel: rgba(255, 255, 255, 0.82);
+  --ink: #1d2b2a;
+  --muted: #5d6f69;
+  --accent: #b6542f;
+  --accent-deep: #7e3418;
+  --line: rgba(29, 43, 42, 0.14);
+}
+
+html {
+  font-size: 16px;
+}
+
+body {
+  min-height: 100vh;
+  margin: 0;
+  color: var(--ink);
+  background:
+    radial-gradient(circle at top left, rgba(182, 84, 47, 0.18), transparent 28%),
+    radial-gradient(circle at bottom right, rgba(37, 109, 96, 0.16), transparent 30%),
+    linear-gradient(180deg, #f7f0e5 0%, #f2eadf 100%);
+  font-family: Georgia, "Times New Roman", serif;
+}
+
+a {
+  color: inherit;
+}
+
+.btn:focus,
+.btn:active:focus,
+.btn-link.nav-link:focus,
+.form-control:focus,
+.form-check-input:focus {
+  box-shadow: 0 0 0 0.1rem rgba(255, 255, 255, 0.75), 0 0 0 0.25rem rgba(182, 84, 47, 0.25);
+}
+
+.app-chrome {
+  min-height: 100vh;
+}
+
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  backdrop-filter: blur(12px);
+  background: rgba(244, 239, 230, 0.72);
+  border-bottom: 1px solid var(--line);
+}
+
+.topbar-inner,
+.main-shell {
+  width: min(1160px, calc(100% - 2rem));
+  margin: 0 auto;
+}
+
+.topbar-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 0;
+}
+
+.brand {
+  font-size: 1.25rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-decoration: none;
+}
+
+.nav-links {
+  display: flex;
+  gap: 1rem;
+}
+
+.nav-links a {
+  text-decoration: none;
+  color: var(--muted);
+}
+
+.nav-links a:hover {
+  color: var(--accent-deep);
+}
+
+.main-shell {
+  padding: 2rem 0 4rem;
+}
+
+.hero,
+.page-shell {
+  display: grid;
+  gap: 1.5rem;
+}
+
+.hero {
+  grid-template-columns: 1.7fr 1fr;
+  align-items: stretch;
+  margin-top: 2rem;
+}
+
+.hero-copy,
+.hero-panel,
+.jobs-table-card,
+.editor-card {
+  background: var(--panel);
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  border-radius: 24px;
+  box-shadow: 0 24px 60px rgba(54, 41, 26, 0.09);
+}
+
+.hero-copy {
+  padding: 3rem;
+}
+
+.hero-copy h1 {
+  font-size: clamp(2.5rem, 4vw, 4.75rem);
+  line-height: 0.98;
+  margin-bottom: 1rem;
+  max-width: 10ch;
+}
+
+.hero-panel,
+.editor-card {
+  padding: 2rem;
+}
+
+.hero-panel ul {
+  margin: 1rem 0 0;
+  padding-left: 1.25rem;
+}
+
+.hero-actions,
+.form-actions,
+.action-row,
+.toolbar-actions {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.page-shell {
+  margin-top: 1.5rem;
+}
+
+.page-shell-narrow {
+  max-width: 760px;
+}
+
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  align-items: start;
+}
+
+.eyebrow {
+  color: var(--accent-deep);
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  font-size: 0.78rem;
+  margin-bottom: 0.5rem;
+}
+
+.lede,
+.muted {
+  color: var(--muted);
+}
+
+.toolbar {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  align-items: end;
+  padding: 1.25rem 1.5rem;
+  background: rgba(255, 250, 242, 0.72);
+  border-radius: 20px;
+  border: 1px solid var(--line);
+}
+
+.toolbar-search {
+  flex: 1;
+}
+
+.jobs-table-card {
+  overflow: hidden;
+}
+
+.jobs-table {
+  margin: 0;
+}
+
+.jobs-table thead th {
+  background: rgba(126, 52, 24, 0.06);
+  color: var(--muted);
+  border-bottom-color: var(--line);
+}
+
+.jobs-table td,
+.jobs-table th {
+  padding: 1rem;
+  vertical-align: top;
+}
+
+.editor-form {
+  display: grid;
+  gap: 1rem;
+}
+
+.btn-primary {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+
+.btn-primary:hover,
+.btn-primary:focus {
+  background: var(--accent-deep);
+  border-color: var(--accent-deep);
+}
+
+.btn-outline-primary {
+  color: var(--accent-deep);
+  border-color: rgba(126, 52, 24, 0.28);
+}
+
+.btn-outline-primary:hover {
+  background: rgba(126, 52, 24, 0.08);
+  color: var(--accent-deep);
+  border-color: rgba(126, 52, 24, 0.4);
+}
+
+code {
+  color: var(--accent-deep);
+  background: rgba(126, 52, 24, 0.08);
+  border-radius: 6px;
+  padding: 0.15rem 0.4rem;
+}
+
+@media (max-width: 900px) {
+  .hero {
+    grid-template-columns: 1fr;
+  }
+
+  .page-header,
+  .toolbar,
+  .topbar-inner {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .main-shell {
+    width: min(100% - 1rem, 1160px);
+  }
+
+  .hero-copy,
+  .hero-panel,
+  .editor-card {
+    padding: 1.5rem;
+  }
+}

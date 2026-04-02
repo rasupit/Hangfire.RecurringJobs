@@ -1,0 +1,10 @@
+.vs/
+.dotnet*/
+.nuget/
+bin/
+obj/
+artifacts/
+TestResults/
+.env
+*.user
+*.suo
