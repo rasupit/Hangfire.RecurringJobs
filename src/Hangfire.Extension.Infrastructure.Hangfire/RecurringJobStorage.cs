@@ -29,7 +29,8 @@ public sealed class RecurringJobStorage(JobStorage jobStorage) : IRecurringJobSt
                 Items: items,
                 Page: query.SafePage,
                 PageSize: query.SafePageSize,
-                TotalCount: filteredJobs.Length));
+                TotalCount: filteredJobs.Length,
+                Search: query.Search));
         }
         catch (Exception exception)
         {
@@ -52,7 +53,8 @@ public sealed class RecurringJobStorage(JobStorage jobStorage) : IRecurringJobSt
                 Items: failedItems,
                 Page: query.SafePage,
                 PageSize: query.SafePageSize,
-                TotalCount: failedItems.Length));
+                TotalCount: failedItems.Length,
+                Search: query.Search));
         }
     }
 

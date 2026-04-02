@@ -32,6 +32,8 @@ public sealed class RecurringJobIntegrationTests
         Assert.Equal(2, page.TotalCount);
         Assert.Single(page.Items);
         Assert.Equal(2, page.TotalPages);
+        Assert.Equal("job", page.Search);
+        Assert.True(page.HasNextPage);
     }
 
     [Fact]

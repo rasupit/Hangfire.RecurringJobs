@@ -5,6 +5,22 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <AddRazorSupportForMvc>true</AddRazorSupportForMvc>
+    <PackageId>Hangfire.Extension.AspNetCore</PackageId>
+    <Version>0.1.0</Version>
+    <Title>Hangfire.Extension.AspNetCore</Title>
+    <Description>Embedded Razor Pages admin UI and recurring job management helpers for Hangfire on ASP.NET Core.</Description>
+    <Authors>Ricky</Authors>
+    <Company>Ricky</Company>
+    <PackageProjectUrl>https://github.com/rasupit/Hangfire.Extension</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/rasupit/Hangfire.Extension</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageTags>hangfire;aspnetcore;razor-pages;recurring-jobs;scheduler;dashboard</PackageTags>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <IsPackable>true</IsPackable>
   </PropertyGroup>
 
   <ItemGroup>
@@ -18,6 +34,10 @@
 
   <ItemGroup>
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="..\..\README.md" Pack="true" PackagePath="\" Link="README.md" />
   </ItemGroup>
 
   <ItemGroup>

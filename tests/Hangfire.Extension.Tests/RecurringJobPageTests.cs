@@ -27,4 +27,19 @@ public sealed class RecurringJobPageTests
 
         Assert.Equal(0, page.TotalPages);
     }
+
+    [Fact]
+    public void NavigationFlags_AreCalculatedFromPageAndTotalPages()
+    {
+        var page = new RecurringJobPage(
+            Items: [],
+            Page: 2,
+            PageSize: 25,
+            TotalCount: 60,
+            Search: "report");
+
+        Assert.True(page.HasPreviousPage);
+        Assert.True(page.HasNextPage);
+        Assert.Equal("report", page.Search);
+    }
 }

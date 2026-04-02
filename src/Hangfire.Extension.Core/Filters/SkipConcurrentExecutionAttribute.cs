@@ -8,7 +8,9 @@ namespace Hangfire.Extension.Core.Filters;
 public sealed class SkipConcurrentExecutionAttribute(int timeoutInSeconds = 60) : JobFilterAttribute, IServerFilter
 {
     private const string LockHandleKey = "Hangfire.Extension.SkipConcurrentExecution.LockHandle";
-    private readonly TimeSpan timeout = TimeSpan.FromSeconds(timeoutInSeconds);
+    private readonly TimeSpan timeout = timeoutInSeconds > 0
+        ? TimeSpan.FromSeconds(timeoutInSeconds)
+        : throw new ArgumentOutOfRangeException(nameof(timeoutInSeconds), "Timeout must be greater than zero.");
 
     public void OnPerforming(PerformingContext context)
     {

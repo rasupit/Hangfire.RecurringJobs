@@ -193,7 +193,10 @@ The recurring jobs `GET` endpoint returns a paged response:
   "page": 1,
   "pageSize": 50,
   "totalCount": 1,
-  "totalPages": 1
+  "totalPages": 1,
+  "search": "nightly",
+  "hasPreviousPage": false,
+  "hasNextPage": false
 }
 ```
 
@@ -300,6 +303,34 @@ Once wired into your host:
 - `Enable` and `Update cron` are intentionally code-first.
 - The extension uses public Hangfire APIs only.
 
+## SkipConcurrentExecutionAttribute
+
+Use `SkipConcurrentExecutionAttribute` on a job method when a second overlapping execution should be skipped instead of waiting for the first one to finish.
+
+Example:
+
+```csharp
+using Hangfire.Extension.Core.Filters;
+
+public sealed class ReportJobs
+{
+    [SkipConcurrentExecution(timeoutInSeconds: 30)]
+    public Task RunNightlyReport()
+    {
+        // Job work here.
+        return Task.CompletedTask;
+    }
+}
+```
+
+Behavior:
+
+- the first execution acquires a distributed lock
+- a concurrent execution that cannot acquire the lock within the timeout is canceled
+- the lock is released after the job completes
+
+This relies on your Hangfire storage provider supporting distributed locks correctly.
+
 ## Current Verification
 
 At the time this README was added:
@@ -308,7 +339,32 @@ At the time this README was added:
 - the test project passes
 - the sample UI runs
 
+## NuGet Packaging
+
+The packageable library is:
+
+- `src/Hangfire.Extension.AspNetCore/Hangfire.Extension.AspNetCore.csproj`
+
+To create a local NuGet package:
+
+```powershell
+dotnet pack .\src\Hangfire.Extension.AspNetCore\Hangfire.Extension.AspNetCore.csproj -c Release
+```
+
+The generated files will be written under:
+
+- `src/Hangfire.Extension.AspNetCore\bin\Release`
+
+This package contains:
+
+- the embedded Razor Pages UI
+- the route-mapping extensions
+- the recurring-job services
+- the concurrency-control attribute
+
+The sample host in `src/Hangfire.Extension.Web` is not intended to be published as a NuGet package.
+
 ## Next Good Improvements
 
-- add paging metadata to the API
-- add richer integration tests against a real Hangfire storage provider
+- add richer filtering and sorting options to the API and UI
+- add packaging/publishing guidance for NuGet distribution
