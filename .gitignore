@@ -5,6 +5,7 @@ bin/
 obj/
 artifacts/
 TestResults/
+.appdata/
 .env
 *.user
 *.suo
