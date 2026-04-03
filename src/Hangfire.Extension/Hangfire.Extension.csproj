@@ -9,7 +9,7 @@
     <RootNamespace>Hangfire.Extension</RootNamespace>
     <PackageId>Hangfire.Extension</PackageId>
     <PackageReadmeFile>README.md</PackageReadmeFile>
-    <Version>0.1.2</Version>
+    <Version>0.1.3</Version>
     <Title>Hangfire Extension</Title>
     <Description>Recurring job admin UI and helpers for Hangfire ASP.NET Core applications.</Description>
   </PropertyGroup>

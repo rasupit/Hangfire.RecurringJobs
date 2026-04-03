@@ -56,6 +56,7 @@ public sealed class RecurringJobHostIntegrationTests
         var content = await GetStringEnsuringSuccessAsync(client, "/recurring-jobs");
 
         Assert.Contains("/hangfire-extension/css/hangfire-extension.css", content);
+        Assert.DoesNotContain("href=\"~/hangfire-extension/css/hangfire-extension.css\"", content, StringComparison.OrdinalIgnoreCase);
         Assert.DoesNotContain("href=\"/css/hangfire-extension.css\"", content, StringComparison.OrdinalIgnoreCase);
     }
 
