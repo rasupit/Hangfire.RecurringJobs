@@ -3,9 +3,10 @@
 ## Core Principles
 
 - Prefer simplicity over architectural purity
-- Optimize for readability and maintainability
+- Optimize for readability, maintainability, and consumer ergonomics
 - Avoid over-engineering
 - Design for current requirements, not hypothetical future scale
+- A clean public API is part of code quality
 
 ---
 
@@ -13,119 +14,134 @@
 
 - Prefer pragmatic architecture over strict clean architecture
 - Start with a single project by default
+- Keep layering logical within the same project unless a real boundary exists
 
-- Separate API, business logic, and data access logically:
-  - use folders and namespaces
-  - avoid physical separation (projects/DLLs) unless necessary
+Separate concerns logically with:
+- folders
+- namespaces
+- focused classes
 
-- Prefer separation by class, folder, and namespace before introducing new projects
+Avoid physical separation into multiple projects unless there is a clear immediate payoff.
 
-- Only introduce separate projects or DLLs if ALL are true:
-  - clear and immediate benefit
-  - reduces complexity (not increases it)
-  - real boundary exists (deployment, ownership, or incompatible dependencies)
-
-- For small to medium solutions:
-  - keep runtime assemblies minimal
-  - preserve layering logically within the same project
-  - avoid unnecessary abstraction layers
-
-- Keep namespace structure aligned with folder structure
+Only introduce separate projects or DLLs if all are true:
+- there is a real boundary
+- it reduces complexity
+- it improves the current system, not a hypothetical future one
 
 ---
 
-## Anti-Overengineering Rules (Critical)
+## Public API Design
+
+- Design public APIs for the consumer, not the internal folder structure
+- Prefer one obvious way to use the library
+- Configure a concept once and derive related behavior internally
+- Make misuse difficult
+
+Prefer:
+- root-level namespaces for user-facing types
+- small, intention-revealing extension methods
+- minimal required `using` directives
+- names that describe the feature, not the implementation history
+
+Avoid:
+- forcing consumers to repeat the same setting twice
+- exposing internal layers through multiple public namespaces
+- naming that reflects old project layout instead of the current design
+
+---
+
+## Anti-Overengineering Rules
 
 - Do NOT create additional projects or DLLs without clear justification
-- Do NOT introduce patterns unless they solve a real problem
+- Do NOT introduce patterns unless they solve a real problem now
 
 Avoid:
 - unnecessary interfaces
 - excessive abstraction
 - deep folder hierarchies
-- splitting code across too many files
+- duplicate registration flows
+- compatibility wrappers that keep bad APIs alive without a good reason
 - designing for future scale prematurely
 
 Prefer:
 - simple, direct, readable code
 - minimal layers
 - fewer moving parts
+- one source of truth for important configuration
 
 When unsure:
-→ choose the simplest working solution
+choose the simpler approach
 
 ---
 
-## Database
+## ASP.NET Core Library Guidance
 
-- PostgreSQL preferred for large projects
-- SQL Server Express for small to medium projects
-- SQLite for lightweight or embedded use cases
+- Respect the host application's startup and configuration
+- Keep host integration minimal and explicit
+- Prefer conventional ASP.NET Core patterns over custom framework behavior
 
-- Use migrations:
-  - prefer `.sql` when SQL is the natural up/down language
+For Razor Pages based library UI:
+- keep routes canonical and stable
+- keep navigation intuitive
+- avoid internal route leakage
+- avoid areas unless they provide a real benefit
 
-- Avoid destructive changes unless explicitly required
+For endpoint mapping:
+- route configuration should come from one place
+- endpoint registration should not require consumers to restate the same route prefix
 
-- Do NOT:
-  - introduce unnecessary abstraction over data access
-  - overcomplicate schema design early
+For static assets:
+- include only the assets the library actually needs
+- keep asset mapping/documentation aligned with the real host integration shape
+
+---
+
+## Hangfire Guidance
+
+- Use public Hangfire APIs only
+- Centralize Hangfire access in a small integration layer
+- Treat recurring job definitions as explicit source-of-truth data
+- Avoid behavior that hides missing definitions or infrastructure failures
+
+Workers and jobs should be:
+- idempotent where practical
+- easy to trace
+- easy to debug
+
+Concurrency behavior should be explicit and predictable.
 
 ---
 
 ## API Design
 
-- Follow RESTful conventions with OpenAPI
-- Maintain consistent response structure
-- Implement proper error handling
-
-- Use Swagger for:
-  - documentation
-  - development
-  - testing
-  - debugging
-
 - Keep endpoints simple and predictable
-- Avoid unnecessary layers between controller and logic
+- Maintain consistent response shapes
+- Handle errors safely
+- Do not expose internal exception details
+- Prefer stable routes and stable semantics
 
 ---
 
-## Workers
+## Naming
 
-- Workers must be idempotent
-- Must include logging for key steps
-- Must support retries
+- Names should match current purpose, not project history
+- Prefer feature-centered naming over implementation-centered naming
+- Keep namespaces aligned with folders unless that harms the consumer API
 
-- Keep processing logic:
-  - simple
-  - traceable
-  - easy to debug
-
-- Hangfire is preferred where applicable
+When renaming:
+- update docs
+- update release metadata
+- update package identity if needed
+- remove stale names instead of keeping the old and new shapes side-by-side indefinitely
 
 ---
 
-## Docker
+## Documentation
 
-- Docker is the preferred platform
-- Use docker-compose for local development
-
-- Keep services:
-  - isolated
-  - simple to run and understand
-
-- Map volumes to local subfolders for:
-  - data
-  - configurations
-  - logs
-
-- Use:
-  - `.env` for secrets
-  - `.env.example` for templates
-
-- Avoid:
-  - unnecessary service splitting
-  - overly complex networking setups
+- Documentation is part of the product surface
+- Keep `README.md`, release notes, package metadata, and code examples in sync
+- Example code should reflect the recommended integration path
+- Remove stale examples quickly after refactors
 
 ---
 
@@ -135,7 +151,8 @@ Before introducing complexity, ask:
 
 1. Is this solving a real problem now?
 2. Does this make the code easier to understand?
-3. Would a simpler approach work?
+3. Does this make the library easier to consume?
+4. Would a simpler approach work?
 
 If unsure:
-→ choose the simpler approach
+choose the simpler approach

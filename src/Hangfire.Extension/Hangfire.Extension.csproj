@@ -8,10 +8,15 @@
     <AssemblyName>Hangfire.Extension</AssemblyName>
     <RootNamespace>Hangfire.Extension</RootNamespace>
     <PackageId>Hangfire.Extension</PackageId>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
     <Version>0.1.0-local</Version>
     <Title>Hangfire Extension</Title>
     <Description>Recurring job admin UI and helpers for Hangfire ASP.NET Core applications.</Description>
   </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="..\..\README.md" Pack="true" PackagePath="\" Link="README.md" />
+  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Cronos" Version="0.11.1" />

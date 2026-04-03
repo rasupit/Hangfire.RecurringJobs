@@ -83,8 +83,10 @@ This registers:
 ```csharp
 var app = builder.Build();
 
+app.UseHttpsRedirection();
 app.UseAuthorization();
 
+app.MapStaticAssets();
 app.MapHangfireRecurringJobsApi();
 app.MapRazorPages();
 
@@ -94,6 +96,8 @@ app.Run();
 `MapHangfireRecurringJobsApi()` only maps the JSON API endpoints.
 
 The UI route itself is configured through `AddHangfireRecurringJobs(...)` and served by normal Razor Pages endpoint mapping.
+
+`MapStaticAssets()` is needed so the embedded CSS and other static web assets are available. If your host already maps static assets, keep your existing call.
 
 ## Routes
 
@@ -189,8 +193,10 @@ builder.Services.AddRecurringJobDefinition<ReportJobs>(
 
 var app = builder.Build();
 
+app.UseHttpsRedirection();
 app.UseAuthorization();
 
+app.MapStaticAssets();
 app.MapHangfireRecurringJobsApi();
 app.MapRazorPages();
 
@@ -230,4 +236,5 @@ Current automated coverage includes:
 ## Notes
 
 - The embedded UI is implemented with Razor Pages inside the library project.
+- The library includes static web assets for the embedded UI.
 - `MapRazorPages()` is still required in the host, because the UI is delivered as Razor Pages.
