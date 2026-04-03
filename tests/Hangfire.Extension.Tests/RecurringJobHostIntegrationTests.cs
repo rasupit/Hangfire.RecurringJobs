@@ -8,6 +8,8 @@ using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Logging;
+using Microsoft.AspNetCore.DataProtection;
 
 namespace Hangfire.Extension.Tests;
 
@@ -23,10 +25,7 @@ public sealed class RecurringJobHostIntegrationTests
             "0 * * * *");
 
         using var client = factory.CreateHttpsClient();
-        var response = await client.GetAsync("/recurring-jobs");
-
-        response.EnsureSuccessStatusCode();
-        var content = await response.Content.ReadAsStringAsync();
+        var content = await GetStringEnsuringSuccessAsync(client, "/recurring-jobs");
 
         Assert.Contains("Recurring Jobs", content);
         Assert.Contains("host-job-alpha", content);
@@ -42,10 +41,36 @@ public sealed class RecurringJobHostIntegrationTests
             "0 * * * *");
 
         using var client = factory.CreateHttpsClient();
-        var content = await client.GetStringAsync("/recurring-jobs");
+        var content = await GetStringEnsuringSuccessAsync(client, "/recurring-jobs");
 
         Assert.Contains("/recurring-jobs/host-job-edit/edit", content);
         Assert.DoesNotContain("/RecurringJobs/Edit/host-job-edit", content, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public async Task RecurringJobsPage_UsesPackageScopedStaticAssetPath()
+    {
+        await using var factory = new RecurringJobsWebAppFactory();
+        using var client = factory.CreateHttpsClient();
+
+        var content = await GetStringEnsuringSuccessAsync(client, "/recurring-jobs");
+
+        Assert.Contains("/hangfire-extension/css/hangfire-extension.css", content);
+        Assert.DoesNotContain("href=\"/css/hangfire-extension.css\"", content, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public async Task PackageScopedCss_IsServedFromStaticWebAssets()
+    {
+        await using var factory = new RecurringJobsWebAppFactory();
+        using var client = factory.CreateHttpsClient();
+
+        var response = await client.GetAsync("/hangfire-extension/css/hangfire-extension.css");
+
+        response.EnsureSuccessStatusCode();
+
+        var content = await response.Content.ReadAsStringAsync();
+        Assert.Contains(".hfext-shell", content);
     }
 
     [Fact]
@@ -84,6 +109,7 @@ public sealed class RecurringJobHostIntegrationTests
     private sealed class RecurringJobsWebAppFactory : WebApplicationFactory<Program>, IAsyncDisposable
     {
         private readonly SQLiteStorage storage;
+        private readonly string dataProtectionKeysDirectory;
 
         public RecurringJobsWebAppFactory()
         {
@@ -94,6 +120,13 @@ public sealed class RecurringJobHostIntegrationTests
 
             Directory.CreateDirectory(Path.GetDirectoryName(DatabasePath)!);
             storage = new SQLiteStorage(DatabasePath);
+
+            dataProtectionKeysDirectory = Path.Combine(
+                Path.GetTempPath(),
+                "hangfire-extension-test-keys",
+                Guid.NewGuid().ToString("N"));
+
+            Directory.CreateDirectory(dataProtectionKeysDirectory);
         }
 
         public string DatabasePath { get; }
@@ -101,8 +134,12 @@ public sealed class RecurringJobHostIntegrationTests
         protected override void ConfigureWebHost(IWebHostBuilder builder)
         {
             builder.UseEnvironment("Development");
+            builder.ConfigureLogging(logging => logging.ClearProviders());
             builder.ConfigureTestServices(services =>
             {
+                services.AddDataProtection()
+                    .PersistKeysToFileSystem(new DirectoryInfo(dataProtectionKeysDirectory));
+
                 services.RemoveAll<JobStorage>();
                 services.RemoveAll<IRecurringJobManager>();
 
@@ -135,7 +172,26 @@ public sealed class RecurringJobHostIntegrationTests
             {
                 File.Delete(DatabasePath);
             }
+
+            if (Directory.Exists(dataProtectionKeysDirectory))
+            {
+                Directory.Delete(dataProtectionKeysDirectory, recursive: true);
+            }
         }
+    }
+
+    private static async Task<string> GetStringEnsuringSuccessAsync(HttpClient client, string requestUri)
+    {
+        var response = await client.GetAsync(requestUri);
+        var content = await response.Content.ReadAsStringAsync();
+
+        if (!response.IsSuccessStatusCode)
+        {
+            throw new Xunit.Sdk.XunitException(
+                $"GET {requestUri} returned {(int)response.StatusCode} {response.StatusCode}.{Environment.NewLine}{content}");
+        }
+
+        return content;
     }
 
     private static class SampleRecurringJobs

@@ -99,6 +99,8 @@ The UI route itself is configured through `AddHangfireRecurringJobs(...)` and se
 
 `MapStaticAssets()` is needed so the embedded CSS and other static web assets are available. If your host already maps static assets, keep your existing call.
 
+Package-owned static files are served from `/hangfire-extension/...`, so the library does not compete with a host application's own `wwwroot/lib/...`, `wwwroot/css/...`, or root files such as `favicon.ico`.
+
 ## Routes
 
 With the example above, the canonical UI routes are:
@@ -236,5 +238,5 @@ Current automated coverage includes:
 ## Notes
 
 - The embedded UI is implemented with Razor Pages inside the library project.
-- The library includes static web assets for the embedded UI.
+- The library includes static web assets for the embedded UI under `/hangfire-extension/...`.
 - `MapRazorPages()` is still required in the host, because the UI is delivered as Razor Pages.
