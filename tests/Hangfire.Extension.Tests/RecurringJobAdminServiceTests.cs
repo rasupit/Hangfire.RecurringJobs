@@ -1,8 +1,8 @@
 using Hangfire;
 using Hangfire.Common;
-using Hangfire.Extension.Web.Hangfire;
-using Hangfire.Extension.Web.Models;
-using Hangfire.Extension.Web.Services;
+using Hangfire.Extension.Hangfire;
+using Hangfire.Extension.Models;
+using Hangfire.Extension.Services;
 using Hangfire.Storage.SQLite;
 using NSubstitute;
 

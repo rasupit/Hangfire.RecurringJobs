@@ -1,0 +1,34 @@
+@page "{id}"
+@model Hangfire.Extension.Pages.RecurringJobs.EditModel
+@{
+    ViewData["Title"] = "Edit cron";
+}
+
+<section class="hfext-page hfext-page-narrow">
+    <div class="hfext-page-header">
+        <div>
+            <p class="hfext-eyebrow">Recurring job</p>
+            <h1>Edit cron</h1>
+            <p class="hfext-lede">@Model.Id</p>
+            <p class="hfext-muted">@Model.JobType</p>
+            <p class="hfext-muted">@Model.MethodName</p>
+        </div>
+        <a asp-page="./Index" asp-route-search="@Model.Search" asp-route-pageNumber="@Model.PageNumber" class="hfext-btn hfext-btn-subtle">Back to jobs</a>
+    </div>
+
+    <div class="hfext-card hfext-card-pad">
+        <form method="post" class="hfext-form">
+            <div asp-validation-summary="ModelOnly" class="hfext-validation"></div>
+            <input asp-for="Id" type="hidden" />
+            <div class="hfext-field">
+                <label asp-for="CronExpression"></label>
+                <input asp-for="CronExpression" />
+                <span asp-validation-for="CronExpression" class="hfext-validation"></span>
+            </div>
+            <div class="hfext-action-row">
+                <button type="submit" class="hfext-btn hfext-btn-primary">Save</button>
+                <a asp-page="./Index" asp-route-search="@Model.Search" asp-route-pageNumber="@Model.PageNumber" class="hfext-btn hfext-btn-subtle">Cancel</a>
+            </div>
+        </form>
+    </div>
+</section>

@@ -1,0 +1,12 @@
+{
+  "profiles": {
+    "Hangfire.Extension": {
+      "commandName": "Project",
+      "launchBrowser": true,
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      },
+      "applicationUrl": "https://localhost:27875;http://localhost:27876"
+    }
+  }
+}

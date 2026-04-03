@@ -1,7 +1,7 @@
 using System.Net.Http.Json;
 using Hangfire;
 using Hangfire.Common;
-using Hangfire.Extension.Web.Models;
+using Hangfire.Extension.Models;
 using Hangfire.Storage.SQLite;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
@@ -16,7 +16,7 @@ public sealed class RecurringJobHostIntegrationTests
     [Fact]
     public async Task RecurringJobsPage_RendersSeededJob()
     {
-        await using var factory = new HangfireExtensionWebAppFactory();
+        await using var factory = new RecurringJobsWebAppFactory();
         await factory.SeedRecurringJobAsync(
             "host-job-alpha",
             Job.FromExpression(() => SampleRecurringJobs.RunAlpha()),
@@ -33,9 +33,36 @@ public sealed class RecurringJobHostIntegrationTests
     }
 
     [Fact]
+    public async Task RecurringJobsPage_UsesCanonicalEditUrl()
+    {
+        await using var factory = new RecurringJobsWebAppFactory();
+        await factory.SeedRecurringJobAsync(
+            "host-job-edit",
+            Job.FromExpression(() => SampleRecurringJobs.RunAlpha()),
+            "0 * * * *");
+
+        using var client = factory.CreateHttpsClient();
+        var content = await client.GetStringAsync("/recurring-jobs");
+
+        Assert.Contains("/recurring-jobs/host-job-edit/edit", content);
+        Assert.DoesNotContain("/RecurringJobs/Edit/host-job-edit", content, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public async Task InternalAreaRoute_IsNotExposed()
+    {
+        await using var factory = new RecurringJobsWebAppFactory();
+        using var client = factory.CreateHttpsClient();
+
+        var response = await client.GetAsync("/RecurringJobs");
+
+        Assert.Equal(System.Net.HttpStatusCode.NotFound, response.StatusCode);
+    }
+
+    [Fact]
     public async Task RecurringJobsApi_ReturnsPagedResponse()
     {
-        await using var factory = new HangfireExtensionWebAppFactory();
+        await using var factory = new RecurringJobsWebAppFactory();
         await factory.SeedRecurringJobAsync(
             "host-job-beta",
             Job.FromExpression(() => SampleRecurringJobs.RunBeta()),
@@ -54,11 +81,11 @@ public sealed class RecurringJobHostIntegrationTests
         Assert.Contains(page.Items, item => item.Id == "host-job-beta");
     }
 
-    private sealed class HangfireExtensionWebAppFactory : WebApplicationFactory<Program>, IAsyncDisposable
+    private sealed class RecurringJobsWebAppFactory : WebApplicationFactory<Program>, IAsyncDisposable
     {
         private readonly SQLiteStorage storage;
 
-        public HangfireExtensionWebAppFactory()
+        public RecurringJobsWebAppFactory()
         {
             DatabasePath = Path.Combine(
                 Path.GetTempPath(),

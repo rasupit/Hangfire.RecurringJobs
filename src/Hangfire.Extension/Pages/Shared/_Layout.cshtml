@@ -1,0 +1,27 @@
+@inject Microsoft.Extensions.Options.IOptions<Hangfire.Extension.RecurringJobsOptions> HangfireOptions
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - Hangfire Extension</title>
+    <link rel="stylesheet" href="~/css/hangfire-extension.css" />
+</head>
+<body>
+    <div class="hfext-shell">
+        <header class="hfext-topbar">
+            <div class="hfext-topbar-inner">
+                <a class="hfext-brand" href="@HangfireOptions.Value.RoutePrefixNormalized">Hangfire.Extension</a>
+                <nav class="hfext-nav">
+                    <a href="@HangfireOptions.Value.RoutePrefixNormalized">Recurring jobs</a>
+                </nav>
+            </div>
+        </header>
+        <main class="hfext-main">
+            @RenderBody()
+        </main>
+    </div>
+
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

@@ -1,5 +1,5 @@
-using Hangfire.Extension.Web.DependencyInjection;
-using Hangfire.Extension.Web.Models;
+using Hangfire.Extension;
+using Hangfire.Extension.Models;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Hangfire.Extension.Tests;

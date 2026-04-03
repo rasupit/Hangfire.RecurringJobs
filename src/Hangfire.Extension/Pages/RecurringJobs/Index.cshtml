@@ -1,0 +1,145 @@
+@page
+@model Hangfire.Extension.Pages.RecurringJobs.IndexModel
+@{
+    ViewData["Title"] = "Recurring Jobs";
+}
+
+<section class="hfext-page">
+    <div class="hfext-page-header">
+        <div>
+            <p class="hfext-eyebrow">Hangfire Extension</p>
+            <h1>Recurring jobs</h1>
+            <p class="hfext-lede">Embedded recurring job administration with a small, host-friendly surface.</p>
+        </div>
+    </div>
+
+    @if (!string.IsNullOrWhiteSpace(Model.StatusMessage))
+    {
+        <div class="hfext-alert @(Model.StatusSucceeded == true ? "hfext-alert-success" : "hfext-alert-danger")" role="alert">
+            @Model.StatusMessage
+        </div>
+    }
+
+    <form method="get" class="hfext-toolbar">
+        <div class="hfext-field">
+            <label asp-for="Search">Search</label>
+            <input asp-for="Search" placeholder="Job id, type, method, queue" />
+        </div>
+        <div class="hfext-toolbar-actions">
+            <button type="submit" class="hfext-btn hfext-btn-primary">Apply</button>
+            <a asp-page="./Index" class="hfext-btn hfext-btn-subtle">Reset</a>
+        </div>
+    </form>
+
+    <div class="hfext-meta">
+        <span>@Model.TotalCount recurring job(s)</span>
+        <span>Page @Model.PageNumber@(Model.TotalPages > 0 ? $" of {Model.TotalPages}" : string.Empty)</span>
+    </div>
+
+    <div class="hfext-card">
+        <table class="hfext-table">
+            <thead>
+            <tr>
+                <th>Job</th>
+                <th>Schedule</th>
+                <th>Execution</th>
+                <th>Queue</th>
+                <th>Status</th>
+                <th>Actions</th>
+            </tr>
+            </thead>
+            <tbody>
+            @foreach (var job in Model.Jobs)
+            {
+                <tr>
+                    <td>
+                        <strong>@job.Id</strong>
+                        <div class="hfext-muted">@job.JobType</div>
+                        <div class="hfext-muted">@job.MethodName</div>
+                    </td>
+                    <td>
+                        <code>@job.CronExpression</code>
+                        <div class="hfext-muted">Next: @(job.NextExecution?.ToLocalTime().ToString("yyyy-MM-dd HH:mm:ss zzz") ?? "-")</div>
+                    </td>
+                    <td>
+                        <div>Last: @(job.LastExecution?.ToLocalTime().ToString("yyyy-MM-dd HH:mm:ss zzz") ?? "-")</div>
+                        <div class="hfext-muted">Last job id: @(job.LastJobId ?? "-")</div>
+                    </td>
+                    <td>@job.Queue</td>
+                    <td>
+                        @if (!string.IsNullOrWhiteSpace(job.Error))
+                        {
+                            <span class="hfext-badge hfext-badge-danger">Error</span>
+                            <div class="hfext-muted">@job.Error</div>
+                        }
+                        else if (job.IsDisabled)
+                        {
+                            <span class="hfext-badge hfext-badge-muted">Disabled</span>
+                        }
+                        else
+                        {
+                            <span class="hfext-badge hfext-badge-success">Active</span>
+                        }
+                    </td>
+                    <td>
+                        <div class="hfext-action-row">
+                            <form method="post" asp-page-handler="Trigger">
+                                <input type="hidden" name="id" value="@job.Id" />
+                                <button type="submit" class="hfext-btn hfext-btn-outline">Trigger</button>
+                            </form>
+                            @if (job.IsDisabled)
+                            {
+                                <form method="post" asp-page-handler="Enable">
+                                    <input type="hidden" name="id" value="@job.Id" />
+                                    <button type="submit" class="hfext-btn hfext-btn-outline-success">Enable</button>
+                                </form>
+                            }
+                            else
+                            {
+                                <form method="post" asp-page-handler="Disable">
+                                    <input type="hidden" name="id" value="@job.Id" />
+                                    <button type="submit" class="hfext-btn hfext-btn-outline-warning">Disable</button>
+                                </form>
+                            }
+                            <a asp-page="./Edit"
+                               asp-route-id="@job.Id"
+                               asp-route-search="@Model.Search"
+                               asp-route-pageNumber="@Model.PageNumber"
+                               class="hfext-btn hfext-btn-dark">Edit cron</a>
+                        </div>
+                    </td>
+                </tr>
+            }
+            </tbody>
+        </table>
+    </div>
+
+    @if (Model.TotalPages > 1)
+    {
+        <nav class="hfext-pagination" aria-label="Recurring jobs paging">
+            @if (Model.CanGoToPreviousPage)
+            {
+                <a class="hfext-btn hfext-btn-subtle"
+                   asp-page="./Index"
+                   asp-route-search="@Model.Search"
+                   asp-route-pageNumber="@(Model.PageNumber - 1)">Previous</a>
+            }
+            else
+            {
+                <span class="hfext-btn hfext-btn-disabled">Previous</span>
+            }
+
+            @if (Model.CanGoToNextPage)
+            {
+                <a class="hfext-btn hfext-btn-subtle"
+                   asp-page="./Index"
+                   asp-route-search="@Model.Search"
+                   asp-route-pageNumber="@(Model.PageNumber + 1)">Next</a>
+            }
+            else
+            {
+                <span class="hfext-btn hfext-btn-disabled">Next</span>
+            }
+        </nav>
+    }
+</section>
