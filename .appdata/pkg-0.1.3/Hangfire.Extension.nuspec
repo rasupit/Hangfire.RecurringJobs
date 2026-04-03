@@ -1,0 +1,24 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2013/05/nuspec.xsd">
+  <metadata>
+    <id>Hangfire.Extension</id>
+    <version>0.1.3</version>
+    <title>Hangfire Extension</title>
+    <authors>Hangfire.Extension</authors>
+    <readme>README.md</readme>
+    <description>Recurring job admin UI and helpers for Hangfire ASP.NET Core applications.</description>
+    <repository type="git" commit="f39f35fe59c662310d029c225dc0893c95ac9f5e" />
+    <dependencies>
+      <group targetFramework="net10.0">
+        <dependency id="Cronos" version="0.11.1" exclude="Build,Analyzers" />
+        <dependency id="Hangfire.AspNetCore" version="1.8.23" exclude="Build,Analyzers" />
+        <dependency id="Newtonsoft.Json" version="13.0.3" exclude="Build,Analyzers" />
+      </group>
+    </dependencies>
+    <frameworkReferences>
+      <group targetFramework="net10.0">
+        <frameworkReference name="Microsoft.AspNetCore.App" />
+      </group>
+    </frameworkReferences>
+  </metadata>
+</package>

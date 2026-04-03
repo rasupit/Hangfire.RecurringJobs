@@ -55,9 +55,9 @@ public sealed class RecurringJobHostIntegrationTests
 
         var content = await GetStringEnsuringSuccessAsync(client, "/recurring-jobs");
 
-        Assert.Contains("/hangfire-extension/css/hangfire-extension.css", content);
-        Assert.DoesNotContain("href=\"~/hangfire-extension/css/hangfire-extension.css\"", content, StringComparison.OrdinalIgnoreCase);
-        Assert.DoesNotContain("href=\"/css/hangfire-extension.css\"", content, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("<style>", content, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("--hfext-panel", content, StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("hangfire-extension.css", content, StringComparison.OrdinalIgnoreCase);
     }
 
     [Fact]
@@ -70,20 +70,6 @@ public sealed class RecurringJobHostIntegrationTests
 
         Assert.Contains("class=\"hfext-topbar\"", content);
         Assert.Contains("<title>Recurring Jobs - Hangfire Extension</title>", content, StringComparison.OrdinalIgnoreCase);
-    }
-
-    [Fact]
-    public async Task PackageScopedCss_IsServedFromStaticWebAssets()
-    {
-        await using var factory = new RecurringJobsWebAppFactory();
-        using var client = factory.CreateHttpsClient();
-
-        var response = await client.GetAsync("/hangfire-extension/css/hangfire-extension.css");
-
-        response.EnsureSuccessStatusCode();
-
-        var content = await response.Content.ReadAsStringAsync();
-        Assert.Contains(".hfext-shell", content);
     }
 
     [Fact]

@@ -1,0 +1,3 @@
+﻿<Project>
+  <Import Project="..\build\Hangfire.Extension.props" />
+</Project>
