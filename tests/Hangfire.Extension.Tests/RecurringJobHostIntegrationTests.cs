@@ -1,7 +1,7 @@
 using System.Net.Http.Json;
 using Hangfire;
 using Hangfire.Common;
-using Hangfire.Extension.Core.Models;
+using Hangfire.Extension.Web.Models;
 using Hangfire.Storage.SQLite;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;

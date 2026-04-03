@@ -1,6 +1,6 @@
 using Hangfire;
 using Hangfire.Common;
-using Hangfire.Extension.Core.Filters;
+using Hangfire.Extension.Web.Filters;
 using Hangfire.Server;
 using Hangfire.Storage;
 using NSubstitute;

@@ -1,4 +1,4 @@
-using Hangfire.Extension.AspNetCore.Options;
+using Hangfire.Extension.Web.Options;
 
 namespace Hangfire.Extension.Tests;
 

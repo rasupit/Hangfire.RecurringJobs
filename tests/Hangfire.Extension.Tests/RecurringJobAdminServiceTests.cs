@@ -1,18 +1,30 @@
 using Hangfire;
 using Hangfire.Common;
-using Hangfire.Extension.Core.Abstractions;
-using Hangfire.Extension.Core.Models;
-using Hangfire.Extension.Core.Services;
+using Hangfire.Extension.Web.Hangfire;
+using Hangfire.Extension.Web.Models;
+using Hangfire.Extension.Web.Services;
+using Hangfire.Storage.SQLite;
 using NSubstitute;
 
 namespace Hangfire.Extension.Tests;
 
-public sealed class RecurringJobAdminServiceTests
+public sealed class RecurringJobAdminServiceTests : IDisposable
 {
-    private readonly IRecurringJobStorage storage = Substitute.For<IRecurringJobStorage>();
-    private readonly IRecurringJobDefinitionProvider definitionProvider = Substitute.For<IRecurringJobDefinitionProvider>();
-    private readonly ICronExpressionValidator cronValidator = new CronExpressionValidator();
+    private readonly SQLiteStorage storage;
     private readonly IRecurringJobManager recurringJobManager = Substitute.For<IRecurringJobManager>();
+
+    public RecurringJobAdminServiceTests()
+    {
+        DatabasePath = Path.Combine(
+            Path.GetTempPath(),
+            "hangfire-extension-admin-service-tests",
+            $"{Guid.NewGuid():N}.db");
+
+        Directory.CreateDirectory(Path.GetDirectoryName(DatabasePath)!);
+        storage = new SQLiteStorage(DatabasePath);
+    }
+
+    public string DatabasePath { get; }
 
     [Fact]
     public async Task UpdateCronAsync_ReturnsFailure_WhenCronIsInvalid()
@@ -23,7 +35,6 @@ public sealed class RecurringJobAdminServiceTests
 
         Assert.False(result.Succeeded);
         Assert.False(string.IsNullOrWhiteSpace(result.Message));
-        await definitionProvider.DidNotReceive().GetDefinitionAsync("job-1", Arg.Any<CancellationToken>());
     }
 
     [Fact]
@@ -36,10 +47,7 @@ public sealed class RecurringJobAdminServiceTests
             TimeZoneInfo.Utc,
             "default");
 
-        definitionProvider.GetDefinitionAsync("job-1", Arg.Any<CancellationToken>())
-            .Returns(definition);
-
-        var service = CreateSubject();
+        var service = CreateSubject(definition);
 
         var result = await service.EnableAsync("job-1");
 
@@ -55,8 +63,18 @@ public sealed class RecurringJobAdminServiceTests
 #pragma warning restore CS0618
     }
 
-    private RecurringJobAdminService CreateSubject()
-        => new(storage, definitionProvider, cronValidator, recurringJobManager);
+    private RecurringJobAdminService CreateSubject(params RecurringJobDefinition[] definitions)
+        => new(new RecurringJobStorage(storage), definitions, new CronExpressionValidator(), recurringJobManager);
+
+    public void Dispose()
+    {
+        storage.Dispose();
+
+        if (File.Exists(DatabasePath))
+        {
+            File.Delete(DatabasePath);
+        }
+    }
 
     private static class SampleJob
     {

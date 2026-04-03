@@ -1,6 +1,6 @@
 using Hangfire;
-using Hangfire.Extension.AspNetCore.DependencyInjection;
-using Hangfire.Extension.AspNetCore.Routing;
+using Hangfire.Extension.Web.DependencyInjection;
+using Hangfire.Extension.Web.Routing;
 
 var builder = WebApplication.CreateBuilder(args);
 

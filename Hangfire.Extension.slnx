@@ -1,6 +1,5 @@
 <Solution>
   <Folder Name="/src/">
-    <Project Path="src/Hangfire.Extension.AspNetCore/Hangfire.Extension.AspNetCore.csproj" />
     <Project Path="src/Hangfire.Extension.Web/Hangfire.Extension.Web.csproj" />
   </Folder>
   <Folder Name="/tests/">

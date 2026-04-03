@@ -1,4 +1,4 @@
-using Hangfire.Extension.Core.Models;
+using Hangfire.Extension.Web.Models;
 
 namespace Hangfire.Extension.Tests;
 

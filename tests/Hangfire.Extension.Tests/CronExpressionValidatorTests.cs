@@ -1,4 +1,4 @@
-using Hangfire.Extension.Core.Services;
+using Hangfire.Extension.Web.Services;
 
 namespace Hangfire.Extension.Tests;
 

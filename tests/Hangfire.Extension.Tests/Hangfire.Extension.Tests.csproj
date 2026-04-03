@@ -9,7 +9,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\Hangfire.Extension.Web\Hangfire.Extension.Web.csproj" />
-    <ProjectReference Include="..\..\src\Hangfire.Extension.AspNetCore\Hangfire.Extension.AspNetCore.csproj" />
   </ItemGroup>
 
   <ItemGroup>

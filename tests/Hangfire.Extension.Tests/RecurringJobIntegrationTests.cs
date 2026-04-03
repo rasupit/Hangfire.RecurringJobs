@@ -1,9 +1,9 @@
 using Hangfire;
 using Hangfire.Common;
-using Hangfire.Extension.Core.Models;
-using Hangfire.Extension.Core.Services;
+using Hangfire.Extension.Web.Hangfire;
+using Hangfire.Extension.Web.Models;
+using Hangfire.Extension.Web.Services;
 using Hangfire.Storage.SQLite;
-using Hangfire.Extension.Infrastructure.Hangfire;
 
 namespace Hangfire.Extension.Tests;
 
@@ -53,13 +53,9 @@ public sealed class RecurringJobIntegrationTests
             definition.Job,
             definition.CronExpression);
 
-        var registry = new RecurringJobDefinitionRegistry();
-        var provider = new RegistryBackedRecurringJobDefinitionProvider(
-            registry,
-            [new RecurringJobDefinitionRegistration(definition)]);
         var service = new RecurringJobAdminService(
             new RecurringJobStorage(fixture.Storage),
-            provider,
+            [definition],
             new CronExpressionValidator(),
             recurringJobManager);
 

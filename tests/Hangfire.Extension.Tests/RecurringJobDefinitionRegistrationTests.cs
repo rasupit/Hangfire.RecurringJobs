@@ -1,5 +1,5 @@
-using Hangfire.Extension.AspNetCore.DependencyInjection;
-using Hangfire.Extension.Core.Abstractions;
+using Hangfire.Extension.Web.DependencyInjection;
+using Hangfire.Extension.Web.Models;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Hangfire.Extension.Tests;
@@ -7,7 +7,7 @@ namespace Hangfire.Extension.Tests;
 public sealed class RecurringJobDefinitionRegistrationTests
 {
     [Fact]
-    public async Task AddRecurringJobDefinition_RegistersDefinitionForLookup()
+    public void AddRecurringJobDefinition_RegistersDefinition()
     {
         var services = new ServiceCollection();
         services.AddRecurringJobDefinition<SampleJob>(
@@ -15,13 +15,10 @@ public sealed class RecurringJobDefinitionRegistrationTests
             job => job.Run(),
             "0 * * * *");
 
-        await using var provider = services.BuildServiceProvider();
-        var definitionProvider = provider.GetRequiredService<IRecurringJobDefinitionProvider>();
+        using var provider = services.BuildServiceProvider();
+        var definition = Assert.Single(provider.GetServices<RecurringJobDefinition>());
 
-        var definition = await definitionProvider.GetDefinitionAsync("job-1");
-
-        Assert.NotNull(definition);
-        Assert.Equal("job-1", definition!.Id);
+        Assert.Equal("job-1", definition.Id);
         Assert.Equal("0 * * * *", definition.CronExpression);
     }
 
