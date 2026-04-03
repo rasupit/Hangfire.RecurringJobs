@@ -60,6 +60,18 @@ public sealed class RecurringJobHostIntegrationTests
     }
 
     [Fact]
+    public async Task RecurringJobsPage_RendersLibraryLayout()
+    {
+        await using var factory = new RecurringJobsWebAppFactory();
+        using var client = factory.CreateHttpsClient();
+
+        var content = await GetStringEnsuringSuccessAsync(client, "/recurring-jobs");
+
+        Assert.Contains("class=\"hfext-topbar\"", content);
+        Assert.Contains("<title>Recurring Jobs - Hangfire Extension</title>", content, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
     public async Task PackageScopedCss_IsServedFromStaticWebAssets()
     {
         await using var factory = new RecurringJobsWebAppFactory();
