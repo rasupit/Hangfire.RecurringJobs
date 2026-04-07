@@ -48,7 +48,7 @@ public sealed class RecurringJobHostIntegrationTests
     }
 
     [Fact]
-    public async Task RecurringJobsPage_UsesPackageScopedStaticAssetPath()
+    public async Task RecurringJobsPage_UsesEmbeddedFallbackThemeByDefault()
     {
         await using var factory = new RecurringJobsWebAppFactory();
         using var client = factory.CreateHttpsClient();
@@ -56,7 +56,8 @@ public sealed class RecurringJobHostIntegrationTests
         var content = await GetStringEnsuringSuccessAsync(client, "/recurring-jobs");
 
         Assert.Contains("<style>", content, StringComparison.OrdinalIgnoreCase);
-        Assert.Contains("--hfext-panel", content, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains(".navbar", content, StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("bootstrap.min.css", content, StringComparison.OrdinalIgnoreCase);
         Assert.DoesNotContain("hangfire-extension.css", content, StringComparison.OrdinalIgnoreCase);
     }
 
@@ -68,8 +69,22 @@ public sealed class RecurringJobHostIntegrationTests
 
         var content = await GetStringEnsuringSuccessAsync(client, "/recurring-jobs");
 
-        Assert.Contains("class=\"hfext-topbar\"", content);
+        Assert.Contains("class=\"navbar navbar-expand border-bottom bg-body\"", content);
         Assert.Contains("<title>Recurring Jobs - Hangfire Extension</title>", content, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public async Task RecurringJobsPage_UsesConfiguredThemePath_WhenStylesAreOverridden()
+    {
+        await using var factory = new RecurringJobsWebAppFactory("/css/site.css");
+        using var client = factory.CreateHttpsClient();
+
+        var content = await GetStringEnsuringSuccessAsync(client, "/recurring-jobs");
+
+        Assert.Contains("/css/site.css", content, StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("/hangfire-extension/css/hangfire-extension.css", content, StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("bootstrap.min.css", content, StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("<style>", content, StringComparison.OrdinalIgnoreCase);
     }
 
     [Fact]
@@ -109,9 +124,11 @@ public sealed class RecurringJobHostIntegrationTests
     {
         private readonly SQLiteStorage storage;
         private readonly string dataProtectionKeysDirectory;
+        private readonly string? stylesPath;
 
-        public RecurringJobsWebAppFactory()
+        public RecurringJobsWebAppFactory(string? stylesPath = null)
         {
+            this.stylesPath = stylesPath;
             DatabasePath = Path.Combine(
                 Path.GetTempPath(),
                 "hangfire-extension-host-tests",
@@ -133,6 +150,13 @@ public sealed class RecurringJobHostIntegrationTests
         protected override void ConfigureWebHost(IWebHostBuilder builder)
         {
             builder.UseEnvironment("Development");
+            builder.ConfigureServices(services =>
+            {
+                services.PostConfigure<RecurringJobsOptions>(options =>
+                {
+                    options.Styles = stylesPath;
+                });
+            });
             builder.ConfigureLogging(logging => logging.ClearProviders());
             builder.ConfigureTestServices(services =>
             {

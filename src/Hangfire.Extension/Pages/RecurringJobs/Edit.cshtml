@@ -4,31 +4,37 @@
     ViewData["Title"] = "Edit cron";
 }
 
-<section class="hfext-page hfext-page-narrow">
-    <div class="hfext-page-header">
+<section class="d-grid gap-4 hfext-page-narrow">
+    <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-start gap-3">
         <div>
-            <p class="hfext-eyebrow">Recurring job</p>
-            <h1>Edit cron</h1>
-            <p class="hfext-lede">@Model.Id</p>
-            <p class="hfext-muted">@Model.JobType</p>
-            <p class="hfext-muted">@Model.MethodName</p>
+            <p class="text-uppercase text-primary fw-semibold small mb-2">Recurring job</p>
+            <h1 class="display-6 mb-2">Edit cron</h1>
+            <p class="lead mb-1">@Model.Id</p>
+            <p class="text-body-secondary mb-1">@Model.JobType</p>
+            <p class="text-body-secondary mb-0">@Model.MethodName</p>
         </div>
-        <a asp-page="./Index" asp-route-search="@Model.Search" asp-route-pageNumber="@Model.PageNumber" class="hfext-btn hfext-btn-subtle">Back to jobs</a>
+        <a asp-page="./Index" asp-route-search="@Model.Search" asp-route-pageNumber="@Model.PageNumber" class="btn btn-outline-secondary">Back to jobs</a>
     </div>
 
-    <div class="hfext-card hfext-card-pad">
-        <form method="post" class="hfext-form">
-            <div asp-validation-summary="ModelOnly" class="hfext-validation"></div>
-            <input asp-for="Id" type="hidden" />
-            <div class="hfext-field">
-                <label asp-for="CronExpression"></label>
-                <input asp-for="CronExpression" />
-                <span asp-validation-for="CronExpression" class="hfext-validation"></span>
+    <div class="card shadow-sm">
+        <div class="card-body p-4">
+            <div class="d-grid gap-2 mb-4">
+                <span class="badge text-bg-secondary align-self-start">Cron schedule</span>
+                <p class="text-body-secondary mb-0">Update the expression carefully. The new value is applied to the existing recurring job definition.</p>
             </div>
-            <div class="hfext-action-row">
-                <button type="submit" class="hfext-btn hfext-btn-primary">Save</button>
-                <a asp-page="./Index" asp-route-search="@Model.Search" asp-route-pageNumber="@Model.PageNumber" class="hfext-btn hfext-btn-subtle">Cancel</a>
-            </div>
-        </form>
+            <form method="post" class="d-grid gap-3">
+                <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+                <input asp-for="Id" type="hidden" />
+                <div>
+                    <label asp-for="CronExpression" class="form-label"></label>
+                    <input asp-for="CronExpression" class="form-control" />
+                    <span asp-validation-for="CronExpression" class="text-danger small"></span>
+                </div>
+                <div class="d-flex flex-wrap justify-content-end gap-2">
+                    <button type="submit" class="btn btn-primary">Save</button>
+                    <a asp-page="./Index" asp-route-search="@Model.Search" asp-route-pageNumber="@Model.PageNumber" class="btn btn-outline-secondary">Cancel</a>
+                </div>
+            </form>
+        </div>
     </div>
 </section>

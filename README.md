@@ -97,7 +97,7 @@ app.Run();
 
 The UI route itself is configured through `AddHangfireRecurringJobs(...)` and served by normal Razor Pages endpoint mapping.
 
-`MapStaticAssets()` is needed so the embedded CSS and other static web assets are available. If your host already maps static assets, keep your existing call.
+`MapStaticAssets()` is still recommended for the library's packaged static assets, but the default recurring jobs page theme no longer depends on separate runtime requests for Bootstrap or `hangfire-extension.css`.
 
 Package-owned static files are served from `/hangfire-extension/...`, so the library does not compete with a host application's own `wwwroot/lib/...`, `wwwroot/css/...`, or root files such as `favicon.ico`.
 
@@ -137,8 +137,11 @@ builder.Services.AddHangfireRecurringJobs(options =>
 {
     options.RoutePrefix = "/recurring-jobs";
     options.RequireAuthorization = false;
+    options.Styles = "/css/site.css";
 });
 ```
+
+If `Styles` is not configured, the library inlines its embedded fallback theme automatically. If `Styles` is configured, the library renders only that stylesheet link and assumes the host theme supplies the needed styling.
 
 ## Registering Definitions
 

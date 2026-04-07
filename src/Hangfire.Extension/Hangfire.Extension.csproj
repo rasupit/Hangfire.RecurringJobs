@@ -9,13 +9,18 @@
     <RootNamespace>Hangfire.Extension</RootNamespace>
     <PackageId>Hangfire.Extension</PackageId>
     <PackageReadmeFile>README.md</PackageReadmeFile>
-    <Version>0.1.4</Version>
+    <Version>0.1.12</Version>
     <Title>Hangfire Extension</Title>
     <Description>Recurring job admin UI and helpers for Hangfire ASP.NET Core applications.</Description>
   </PropertyGroup>
 
   <ItemGroup>
     <None Include="..\..\README.md" Pack="true" PackagePath="\" Link="README.md" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="wwwroot\hangfire-extension\css\hangfire-extension.css"
+                      LogicalName="Hangfire.Extension.RecurringJobs.Styles.css" />
   </ItemGroup>
 
   <ItemGroup>

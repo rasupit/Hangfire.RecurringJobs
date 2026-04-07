@@ -5,125 +5,28 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@ViewData["Title"] - Hangfire Extension</title>
-    <style>
-        :root {
-          --hfext-panel: rgba(255, 255, 255, 0.9);
-          --hfext-ink: #1d2b2a;
-          --hfext-muted: #5d6f69;
-          --hfext-accent: #b6542f;
-          --hfext-accent-deep: #7e3418;
-          --hfext-line: rgba(29, 43, 42, 0.14);
-          --hfext-success: #1f7a5a;
-          --hfext-danger: #a63d3d;
-          --hfext-warning: #8a651d;
-        }
-
-        html { font-size: 16px; }
-        body {
-          margin: 0;
-          color: var(--hfext-ink);
-          background:
-            radial-gradient(circle at top left, rgba(182, 84, 47, 0.18), transparent 28%),
-            radial-gradient(circle at bottom right, rgba(37, 109, 96, 0.16), transparent 30%),
-            linear-gradient(180deg, #f7f0e5 0%, #f2eadf 100%);
-          font-family: Georgia, "Times New Roman", serif;
-        }
-        a { color: inherit; }
-        .hfext-shell { min-height: 100vh; }
-        .hfext-topbar {
-          position: sticky; top: 0; z-index: 1000; backdrop-filter: blur(12px);
-          background: rgba(244, 239, 230, 0.72); border-bottom: 1px solid var(--hfext-line);
-        }
-        .hfext-topbar-inner, .hfext-main { width: min(1160px, calc(100% - 2rem)); margin: 0 auto; }
-        .hfext-topbar-inner { display: flex; justify-content: space-between; align-items: center; padding: 1rem 0; }
-        .hfext-brand, .hfext-nav a { text-decoration: none; }
-        .hfext-brand { font-size: 1.2rem; font-weight: 700; }
-        .hfext-nav a { color: var(--hfext-muted); }
-        .hfext-main { padding: 2rem 0 4rem; }
-        .hfext-page { display: grid; gap: 1.5rem; }
-        .hfext-page-narrow { max-width: 760px; }
-        .hfext-page-header { display: flex; justify-content: space-between; gap: 1rem; align-items: start; }
-        .hfext-eyebrow {
-          color: var(--hfext-accent-deep); font-weight: 700; letter-spacing: 0.14em;
-          text-transform: uppercase; font-size: 0.78rem; margin: 0 0 0.5rem;
-        }
-        .hfext-lede, .hfext-muted { color: var(--hfext-muted); }
-        .hfext-card {
-          background: var(--hfext-panel); border: 1px solid rgba(255, 255, 255, 0.6);
-          border-radius: 24px; box-shadow: 0 24px 60px rgba(54, 41, 26, 0.09); overflow: hidden;
-        }
-        .hfext-card-pad { padding: 2rem; }
-        .hfext-toolbar {
-          display: flex; justify-content: space-between; gap: 1rem; align-items: end;
-          padding: 1.25rem 1.5rem; background: rgba(255, 250, 242, 0.72);
-          border-radius: 20px; border: 1px solid var(--hfext-line);
-        }
-        .hfext-toolbar-actions, .hfext-action-row { display: flex; gap: 0.75rem; flex-wrap: wrap; }
-        .hfext-meta, .hfext-pagination {
-          display: flex; justify-content: space-between; gap: 1rem; align-items: center;
-        }
-        .hfext-field { display: grid; gap: 0.4rem; flex: 1; }
-        .hfext-field label { font-weight: 600; }
-        .hfext-field input {
-          width: 100%; box-sizing: border-box; padding: 0.85rem 1rem; border: 1px solid var(--hfext-line);
-          border-radius: 12px; background: #fffdf8; font: inherit;
-        }
-        .hfext-btn {
-          display: inline-flex; align-items: center; justify-content: center; padding: 0.75rem 1rem;
-          border-radius: 999px; border: 1px solid transparent; cursor: pointer; text-decoration: none;
-          font: inherit; background: transparent;
-        }
-        .hfext-btn-primary { background: var(--hfext-accent); color: white; }
-        .hfext-btn-subtle { background: rgba(255, 250, 242, 0.8); border-color: var(--hfext-line); }
-        .hfext-btn-disabled {
-          background: rgba(255, 250, 242, 0.55);
-          border-color: var(--hfext-line);
-          color: var(--hfext-muted);
-          cursor: default;
-        }
-        .hfext-btn-outline, .hfext-btn-outline-success, .hfext-btn-outline-warning, .hfext-btn-dark {
-          border-color: var(--hfext-line); background: white;
-        }
-        .hfext-btn-outline-success { color: var(--hfext-success); }
-        .hfext-btn-outline-warning { color: var(--hfext-warning); }
-        .hfext-btn-dark { background: #1d2b2a; color: white; }
-        .hfext-table { width: 100%; border-collapse: collapse; }
-        .hfext-table th, .hfext-table td {
-          padding: 1rem; border-bottom: 1px solid var(--hfext-line); text-align: left; vertical-align: top;
-        }
-        .hfext-table thead th { color: var(--hfext-muted); background: rgba(126, 52, 24, 0.06); }
-        .hfext-badge { display: inline-block; padding: 0.2rem 0.55rem; border-radius: 999px; font-size: 0.82rem; }
-        .hfext-badge-success { background: rgba(31, 122, 90, 0.12); color: var(--hfext-success); }
-        .hfext-badge-danger { background: rgba(166, 61, 61, 0.12); color: var(--hfext-danger); }
-        .hfext-badge-muted { background: rgba(93, 111, 105, 0.12); color: var(--hfext-muted); }
-        .hfext-alert { padding: 1rem 1.25rem; border-radius: 18px; border: 1px solid var(--hfext-line); }
-        .hfext-alert-success { background: rgba(31, 122, 90, 0.1); }
-        .hfext-alert-danger { background: rgba(166, 61, 61, 0.1); }
-        .hfext-form { display: grid; gap: 1rem; }
-        .hfext-validation { color: var(--hfext-danger); }
-        code {
-          color: var(--hfext-accent-deep); background: rgba(126, 52, 24, 0.08);
-          border-radius: 6px; padding: 0.15rem 0.4rem;
-        }
-        @@media (max-width: 900px) {
-          .hfext-topbar-inner, .hfext-page-header, .hfext-toolbar { flex-direction: column; align-items: stretch; }
-          .hfext-meta, .hfext-pagination { flex-direction: column; align-items: stretch; }
-          .hfext-main { width: min(100% - 1rem, 1160px); }
-          .hfext-card-pad { padding: 1.5rem; }
-        }
-    </style>
+    @if (HangfireOptions.Value.UseEmbeddedStyles)
+    {
+        <style>
+@Html.Raw(Hangfire.Extension.Services.RecurringJobsStyleProvider.GetStyles())
+        </style>
+    }
+    else
+    {
+        <link rel="stylesheet" href="@HangfireOptions.Value.StylesPath" />
+    }
 </head>
 <body>
-    <div class="hfext-shell">
-        <header class="hfext-topbar">
-            <div class="hfext-topbar-inner">
-                <a class="hfext-brand" href="@HangfireOptions.Value.RoutePrefixNormalized">Hangfire.Extension</a>
-                <nav class="hfext-nav">
-                    <a href="@HangfireOptions.Value.RoutePrefixNormalized">Recurring jobs</a>
+    <div class="hfext-shell min-vh-100">
+        <header class="navbar navbar-expand border-bottom bg-body">
+            <div class="container-xl">
+                <a class="navbar-brand fw-semibold" href="@HangfireOptions.Value.RoutePrefixNormalized">Hangfire.Extension</a>
+                <nav class="navbar-nav">
+                    <a class="nav-link active" aria-current="page" href="@HangfireOptions.Value.RoutePrefixNormalized">Recurring jobs</a>
                 </nav>
             </div>
         </header>
-        <main class="hfext-main">
+        <main class="container-xl py-4 py-lg-5">
             @RenderBody()
         </main>
     </div>

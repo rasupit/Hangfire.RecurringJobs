@@ -5,6 +5,7 @@ public sealed class RecurringJobsOptions
     public const string DefaultAuthorizationPolicy = "RecurringJobAdmin";
 
     private string routePrefix = "/recurring-jobs";
+    private string? styles;
 
     public string RoutePrefix
     {
@@ -16,9 +17,19 @@ public sealed class RecurringJobsOptions
 
     public string AuthorizationPolicy { get; set; } = DefaultAuthorizationPolicy;
 
+    public string? Styles
+    {
+        get => styles;
+        set => styles = NormalizeStyles(value);
+    }
+
     public string RoutePrefixNormalized => NormalizeRoutePrefix(RoutePrefix);
 
     public string ApiRoutePrefix => $"{RoutePrefixNormalized}/api/jobs/recurring";
+
+    public bool UseEmbeddedStyles => string.IsNullOrWhiteSpace(styles);
+
+    public string? StylesPath => styles;
 
     public void Validate()
     {
@@ -50,5 +61,15 @@ public sealed class RecurringJobsOptions
         }
 
         return normalized;
+    }
+
+    public static string? NormalizeStyles(string? styles)
+    {
+        if (string.IsNullOrWhiteSpace(styles))
+        {
+            return null;
+        }
+
+        return styles.Trim();
     }
 }

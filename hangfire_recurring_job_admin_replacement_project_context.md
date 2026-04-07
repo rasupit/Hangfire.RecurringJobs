@@ -15,6 +15,7 @@ Recreate (not necessarily fully replicate) the core capabilities of RecurringJob
 - Stability (must never impact host application reliability)
 - Simplicity (minimal UI and logic)
 - Control (full ownership of behavior and extensibility)
+- Host-friendly integration with standard ASP.NET Core conventions
 
 ---
 
@@ -65,14 +66,14 @@ Recreate (not necessarily fully replicate) the core capabilities of RecurringJob
 
 ### Backend
 
-Expose a minimal API layer:
+Expose a minimal API layer under one configured route prefix:
 
 ```
-GET    /api/jobs/recurring
-POST   /api/jobs/recurring/{id}/trigger
-POST   /api/jobs/recurring/{id}/enable
-POST   /api/jobs/recurring/{id}/disable
-PUT    /api/jobs/recurring/{id}
+GET    /{routePrefix}/api/jobs/recurring
+POST   /{routePrefix}/api/jobs/recurring/{id}/trigger
+POST   /{routePrefix}/api/jobs/recurring/{id}/enable
+POST   /{routePrefix}/api/jobs/recurring/{id}/disable
+PUT    /{routePrefix}/api/jobs/recurring/{id}
 ```
 
 Use Hangfire APIs:
@@ -87,6 +88,7 @@ Use Hangfire APIs:
 - Read directly from Hangfire storage
 - Avoid large unbounded queries
 - Add paging if job count grows
+- Keep all Hangfire access centralized in one service layer
 
 ---
 
@@ -103,11 +105,34 @@ Use Hangfire APIs:
 ## UI Approach
 
 ### Option A (Recommended MVP)
-- Simple Razor Pages or minimal SPA
-- Table view + modal edit
+- Razor Pages UI inside the library
+- Standard Bootstrap markup for forms, tables, buttons, alerts, cards, and pagination
+- Simple page-centered flow:
+  - recurring jobs list page
+  - edit cron page
+- Keep custom CSS minimal and limited to a fallback theme layer
 
 ### Option B
 - API-only (Postman / internal tooling)
+
+### Styling Contract
+
+- The library ships with its own fallback theme in `hangfire-extension.css`
+- The fallback theme is embedded and inlined by default so the UI does not depend on separate runtime requests for library CSS assets
+- Hosts may replace the fallback theme by configuring:
+
+```csharp
+builder.Services.AddHangfireRecurringJobs(options =>
+{
+    options.RoutePrefix = "/JobsAdmin";
+    options.RequireAuthorization = true;
+    options.Styles = "/css/site.css";
+});
+```
+
+- If `Styles` is not configured, the embedded fallback theme is used automatically
+- If `Styles` is configured, the library emits only that stylesheet link and assumes the host theme covers the page styling
+- Consumers should not need to keep multiple route or stylesheet settings in sync for one feature
 
 ---
 
@@ -123,7 +148,13 @@ Use Hangfire APIs:
 
 - Continue using Hangfire built-in dashboard for monitoring
 - Replace `Hangfire.RecurringJobAdmin` entirely
-- Use built-in `[DisableConcurrentExecution]` attribute for concurrency control
+- Prefer this host integration model:
+  - `builder.Services.AddHangfireRecurringJobs(...)`
+  - `app.MapHangfireRecurringJobsApi()`
+  - `app.MapRazorPages()`
+  - `app.MapStaticAssets()`
+- Configure the route prefix once and derive UI and API routes from it internally
+- Use `SkipConcurrentExecutionAttribute` for skip-if-running concurrency control
 
 ---
 
@@ -140,7 +171,6 @@ Use Hangfire APIs:
 ## Future Extensions
 
 - Tenant-aware job management
-- Dynamic job registration UI
 - Observability hooks (logs, metrics)
 - Custom job tags and grouping
 
@@ -239,7 +269,7 @@ This module must be implemented as a **loosely coupled extension** to Hangfire:
 
 ### Plugin / Extension Strategy
 - Leverage Hangfire filter interfaces where applicable (e.g., `IServerFilter`, `IClientFilter`)
-- Keep all logic in a separate project/module (e.g., `YourApp.HangfireExtensions`)
+- Keep all logic inside the single `Hangfire.Extension` library project
 - Use dependency injection instead of static coupling where possible
 
 ### Isolation Principles
@@ -259,4 +289,3 @@ This module must be implemented as a **loosely coupled extension** to Hangfire:
 > Keep it simple, safe, and under full control.
 
 This tool is an internal admin utility, not a product. Stability and predictability are more important than feature completeness.
-

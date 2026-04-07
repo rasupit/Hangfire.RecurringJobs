@@ -39,4 +39,21 @@ public sealed class RecurringJobsOptionsTests
 
         Assert.Equal("/recurring-jobs", normalized);
     }
+
+    [Fact]
+    public void StylesPath_UsesLibraryDefault_WhenStylesAreNotConfigured()
+    {
+        var options = new RecurringJobsOptions();
+
+        Assert.True(options.UseEmbeddedStyles);
+        Assert.Null(options.StylesPath);
+    }
+
+    [Fact]
+    public void NormalizeStyles_ReturnsNull_ForBlankValues()
+    {
+        var normalized = RecurringJobsOptions.NormalizeStyles(" ");
+
+        Assert.Null(normalized);
+    }
 }
