@@ -13,7 +13,10 @@
     }
     else
     {
-        <link rel="stylesheet" href="@HangfireOptions.Value.StylesPath" />
+        @foreach (var stylePath in HangfireOptions.Value.NormalizedStyles)
+        {
+            <link rel="stylesheet" href="@stylePath" />
+        }
     }
 </head>
 <body>

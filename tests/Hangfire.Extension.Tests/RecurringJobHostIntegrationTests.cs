@@ -76,14 +76,14 @@ public sealed class RecurringJobHostIntegrationTests
     [Fact]
     public async Task RecurringJobsPage_UsesConfiguredThemePath_WhenStylesAreOverridden()
     {
-        await using var factory = new RecurringJobsWebAppFactory("/css/site.css");
+        await using var factory = new RecurringJobsWebAppFactory("/lib/bootstrap/dist/css/bootstrap.min.css", "/css/site.css");
         using var client = factory.CreateHttpsClient();
 
         var content = await GetStringEnsuringSuccessAsync(client, "/recurring-jobs");
 
+        Assert.Contains("/lib/bootstrap/dist/css/bootstrap.min.css", content, StringComparison.OrdinalIgnoreCase);
         Assert.Contains("/css/site.css", content, StringComparison.OrdinalIgnoreCase);
         Assert.DoesNotContain("/hangfire-extension/css/hangfire-extension.css", content, StringComparison.OrdinalIgnoreCase);
-        Assert.DoesNotContain("bootstrap.min.css", content, StringComparison.OrdinalIgnoreCase);
         Assert.DoesNotContain("<style>", content, StringComparison.OrdinalIgnoreCase);
     }
 
@@ -124,11 +124,11 @@ public sealed class RecurringJobHostIntegrationTests
     {
         private readonly SQLiteStorage storage;
         private readonly string dataProtectionKeysDirectory;
-        private readonly string? stylesPath;
+        private readonly string[] stylesPaths;
 
-        public RecurringJobsWebAppFactory(string? stylesPath = null)
+        public RecurringJobsWebAppFactory(params string[] stylesPaths)
         {
-            this.stylesPath = stylesPath;
+            this.stylesPaths = stylesPaths;
             DatabasePath = Path.Combine(
                 Path.GetTempPath(),
                 "hangfire-extension-host-tests",
@@ -154,7 +154,11 @@ public sealed class RecurringJobHostIntegrationTests
             {
                 services.PostConfigure<RecurringJobsOptions>(options =>
                 {
-                    options.Styles = stylesPath;
+                    options.Styles.Clear();
+                    foreach (var stylePath in stylesPaths)
+                    {
+                        options.Styles.Add(stylePath);
+                    }
                 });
             });
             builder.ConfigureLogging(logging => logging.ClearProviders());

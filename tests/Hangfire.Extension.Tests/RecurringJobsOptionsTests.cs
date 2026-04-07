@@ -46,14 +46,27 @@ public sealed class RecurringJobsOptionsTests
         var options = new RecurringJobsOptions();
 
         Assert.True(options.UseEmbeddedStyles);
-        Assert.Null(options.StylesPath);
+        Assert.Empty(options.NormalizedStyles);
     }
 
     [Fact]
-    public void NormalizeStyles_ReturnsNull_ForBlankValues()
+    public void NormalizeStyle_ReturnsNull_ForBlankValues()
     {
-        var normalized = RecurringJobsOptions.NormalizeStyles(" ");
+        var normalized = RecurringJobsOptions.NormalizeStyle(" ");
 
         Assert.Null(normalized);
+    }
+
+    [Fact]
+    public void NormalizedStyles_FiltersBlankValues_AndTrimsEntries()
+    {
+        var options = new RecurringJobsOptions();
+        options.Styles.Add(" /lib/bootstrap/dist/css/bootstrap.min.css ");
+        options.Styles.Add(" ");
+        options.Styles.Add("/css/site.css");
+
+        Assert.Equal(
+            ["/lib/bootstrap/dist/css/bootstrap.min.css", "/css/site.css"],
+            options.NormalizedStyles);
     }
 }

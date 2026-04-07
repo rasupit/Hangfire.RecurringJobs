@@ -126,12 +126,13 @@ builder.Services.AddHangfireRecurringJobs(options =>
 {
     options.RoutePrefix = "/JobsAdmin";
     options.RequireAuthorization = true;
-    options.Styles = "/css/site.css";
+    options.Styles.Add("/lib/bootstrap/dist/css/bootstrap.min.css");
+    options.Styles.Add("/css/site.css");
 });
 ```
 
 - If `Styles` is not configured, the embedded fallback theme is used automatically
-- If `Styles` is configured, the library emits only that stylesheet link and assumes the host theme covers the page styling
+- If `Styles` contains entries, the library emits each stylesheet link in order and assumes the host theme covers the page styling
 - Consumers should not need to keep multiple route or stylesheet settings in sync for one feature
 
 ---

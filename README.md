@@ -137,11 +137,12 @@ builder.Services.AddHangfireRecurringJobs(options =>
 {
     options.RoutePrefix = "/recurring-jobs";
     options.RequireAuthorization = false;
-    options.Styles = "/css/site.css";
+    options.Styles.Add("/lib/bootstrap/dist/css/bootstrap.min.css");
+    options.Styles.Add("/css/site.css");
 });
 ```
 
-If `Styles` is not configured, the library inlines its embedded fallback theme automatically. If `Styles` is configured, the library renders only that stylesheet link and assumes the host theme supplies the needed styling.
+If `Styles` is not configured, the library inlines its embedded fallback theme automatically. If `Styles` contains entries, the library renders each stylesheet link in order and assumes the host-supplied styles cover the page styling.
 
 ## Registering Definitions
 

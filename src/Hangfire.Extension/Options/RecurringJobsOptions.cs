@@ -5,7 +5,6 @@ public sealed class RecurringJobsOptions
     public const string DefaultAuthorizationPolicy = "RecurringJobAdmin";
 
     private string routePrefix = "/recurring-jobs";
-    private string? styles;
 
     public string RoutePrefix
     {
@@ -17,23 +16,24 @@ public sealed class RecurringJobsOptions
 
     public string AuthorizationPolicy { get; set; } = DefaultAuthorizationPolicy;
 
-    public string? Styles
-    {
-        get => styles;
-        set => styles = NormalizeStyles(value);
-    }
+    public IList<string> Styles { get; } = [];
 
     public string RoutePrefixNormalized => NormalizeRoutePrefix(RoutePrefix);
 
     public string ApiRoutePrefix => $"{RoutePrefixNormalized}/api/jobs/recurring";
 
-    public bool UseEmbeddedStyles => string.IsNullOrWhiteSpace(styles);
+    public bool UseEmbeddedStyles => NormalizedStyles.Count == 0;
 
-    public string? StylesPath => styles;
+    public IReadOnlyList<string> NormalizedStyles => Styles
+        .Select(NormalizeStyle)
+        .Where(static style => style is not null)
+        .Cast<string>()
+        .ToArray();
 
     public void Validate()
     {
         _ = RoutePrefixNormalized;
+        _ = NormalizedStyles;
 
         if (RequireAuthorization && string.IsNullOrWhiteSpace(AuthorizationPolicy))
         {
@@ -63,13 +63,13 @@ public sealed class RecurringJobsOptions
         return normalized;
     }
 
-    public static string? NormalizeStyles(string? styles)
+    public static string? NormalizeStyle(string? style)
     {
-        if (string.IsNullOrWhiteSpace(styles))
+        if (string.IsNullOrWhiteSpace(style))
         {
             return null;
         }
 
-        return styles.Trim();
+        return style.Trim();
     }
 }
