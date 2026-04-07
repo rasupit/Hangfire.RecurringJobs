@@ -132,7 +132,7 @@ builder.Services.AddHangfireRecurringJobs(options =>
 ```
 
 - If `Styles` is not configured, the embedded fallback theme is used automatically
-- If `Styles` contains entries, the library emits each stylesheet link in order and assumes the host theme covers the page styling
+- If `Styles` contains entries, the library keeps its embedded scoped base styles and emits each stylesheet link in order so the host can layer additional theme CSS on top
 - Consumers should not need to keep multiple route or stylesheet settings in sync for one feature
 
 ---

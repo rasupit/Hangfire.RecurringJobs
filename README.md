@@ -142,7 +142,7 @@ builder.Services.AddHangfireRecurringJobs(options =>
 });
 ```
 
-If `Styles` is not configured, the library inlines its embedded fallback theme automatically. If `Styles` contains entries, the library renders each stylesheet link in order and assumes the host-supplied styles cover the page styling.
+If `Styles` is not configured, the library inlines its embedded fallback theme automatically. If `Styles` contains entries, the library still keeps its embedded scoped base styles and then renders each configured stylesheet link in order so hosts can layer Bootstrap and site theme CSS on top.
 
 ## Registering Definitions
 

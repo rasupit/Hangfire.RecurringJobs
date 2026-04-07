@@ -42,7 +42,7 @@
     </form>
 
     <div class="card shadow-sm">
-        <div class="card-header bg-body">
+        <div class="card-header">
             <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-end gap-3">
                 <div>
                     <p class="h5 mb-1">Scheduled jobs</p>
@@ -55,7 +55,7 @@
             </div>
         </div>
         <div class="table-responsive">
-            <table class="table table-hover align-middle mb-0">
+            <table class="table table-hover align-middle mb-0 hfext-jobs-table">
                 <thead class="table-light">
                 <tr>
                     <th>Job</th>
@@ -100,14 +100,16 @@
                             }
                         </td>
                         <td class="text-end">
-                            <div class="d-flex flex-wrap justify-content-end gap-2 hfext-action-row">
+                            <div class="d-flex justify-content-end gap-2 hfext-action-row">
                                 <form method="post" asp-page-handler="Trigger" class="mb-0">
                                     <input type="hidden" name="id" value="@job.Id" />
                                     <button type="submit"
-                                            class="hfext-icon-btn hfext-icon-btn-primary"
+                                            class="btn btn-sm btn-outline-primary hfext-action-btn"
                                             title="Trigger"
                                             aria-label="Trigger @job.Id">
-                                        <span aria-hidden="true">▶</span>
+                                        <svg class="bi" aria-hidden="true" viewBox="0 0 16 16" fill="currentColor">
+                                            <path d="M10.804 8 5 4.633v6.734z" />
+                                        </svg>
                                     </button>
                                 </form>
                                 @if (job.IsDisabled)
@@ -115,10 +117,13 @@
                                     <form method="post" asp-page-handler="Enable" class="mb-0">
                                         <input type="hidden" name="id" value="@job.Id" />
                                         <button type="submit"
-                                                class="hfext-icon-btn hfext-icon-btn-success"
+                                                class="btn btn-sm btn-outline-success hfext-action-btn"
                                                 title="Enable"
                                                 aria-label="Enable @job.Id">
-                                            <span aria-hidden="true">↻</span>
+                                            <svg class="bi" aria-hidden="true" viewBox="0 0 16 16" fill="currentColor">
+                                                <path d="M8 3a5 5 0 1 0 4.546 2.914.5.5 0 1 1 .908-.418A6 6 0 1 1 8 2z" />
+                                                <path d="M8 4.466V.534a.25.25 0 0 1 .41-.192l2.36 1.966c.12.1.12.284 0 .384L8.41 4.658A.25.25 0 0 1 8 4.466" />
+                                            </svg>
                                         </button>
                                     </form>
                                 }
@@ -127,10 +132,12 @@
                                     <form method="post" asp-page-handler="Disable" class="mb-0">
                                         <input type="hidden" name="id" value="@job.Id" />
                                         <button type="submit"
-                                                class="hfext-icon-btn hfext-icon-btn-warning"
+                                                class="btn btn-sm btn-outline-warning hfext-action-btn"
                                                 title="Disable"
                                                 aria-label="Disable @job.Id">
-                                            <span aria-hidden="true">⏸</span>
+                                            <svg class="bi" aria-hidden="true" viewBox="0 0 16 16" fill="currentColor">
+                                                <path d="M5.5 3.5A1.5 1.5 0 0 1 7 5v6a1.5 1.5 0 0 1-3 0V5a1.5 1.5 0 0 1 1.5-1.5m5 0A1.5 1.5 0 0 1 12 5v6a1.5 1.5 0 0 1-3 0V5a1.5 1.5 0 0 1 1.5-1.5" />
+                                            </svg>
                                         </button>
                                     </form>
                                 }
@@ -138,10 +145,12 @@
                                    asp-route-id="@job.Id"
                                    asp-route-search="@Model.Search"
                                    asp-route-pageNumber="@Model.PageNumber"
-                                   class="hfext-icon-btn hfext-icon-btn-solid"
+                                   class="btn btn-sm btn-primary hfext-action-btn"
                                    title="Edit cron"
                                    aria-label="Edit cron for @job.Id">
-                                    <span aria-hidden="true">✎</span>
+                                    <svg class="bi" aria-hidden="true" viewBox="0 0 16 16" fill="currentColor">
+                                        <path d="m12.146.146 3.708 3.708a.5.5 0 0 1 0 .708l-9.5 9.5L3 15l.938-3.354 9.5-9.5a.5.5 0 0 1 .708 0M11.207 3 13 4.793 14.793 3 13 1.207zM12.5 5.293 10.707 3.5 4.5 9.707V11.5h1.793z" />
+                                    </svg>
                                 </a>
                             </div>
                         </td>

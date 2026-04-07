@@ -69,7 +69,8 @@ public sealed class RecurringJobHostIntegrationTests
 
         var content = await GetStringEnsuringSuccessAsync(client, "/recurring-jobs");
 
-        Assert.Contains("class=\"navbar navbar-expand border-bottom bg-body\"", content);
+        Assert.Contains("class=\"navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3\"", content);
+        Assert.Contains("<div class=\"container\">", content, StringComparison.OrdinalIgnoreCase);
         Assert.Contains("<title>Recurring Jobs - Hangfire Extension</title>", content, StringComparison.OrdinalIgnoreCase);
     }
 
@@ -81,10 +82,9 @@ public sealed class RecurringJobHostIntegrationTests
 
         var content = await GetStringEnsuringSuccessAsync(client, "/recurring-jobs");
 
+        Assert.DoesNotContain("<style>", content, StringComparison.OrdinalIgnoreCase);
         Assert.Contains("/lib/bootstrap/dist/css/bootstrap.min.css", content, StringComparison.OrdinalIgnoreCase);
         Assert.Contains("/css/site.css", content, StringComparison.OrdinalIgnoreCase);
-        Assert.DoesNotContain("/hangfire-extension/css/hangfire-extension.css", content, StringComparison.OrdinalIgnoreCase);
-        Assert.DoesNotContain("<style>", content, StringComparison.OrdinalIgnoreCase);
     }
 
     [Fact]

@@ -8,7 +8,7 @@
     @if (HangfireOptions.Value.UseEmbeddedStyles)
     {
         <style>
-@Html.Raw(Hangfire.Extension.Services.RecurringJobsStyleProvider.GetStyles())
+                @Html.Raw(Hangfire.Extension.Services.RecurringJobsStyleProvider.GetStyles())
         </style>
     }
     else
@@ -20,16 +20,31 @@
     }
 </head>
 <body>
-    <div class="hfext-shell min-vh-100">
-        <header class="navbar navbar-expand border-bottom bg-body">
-            <div class="container-xl">
-                <a class="navbar-brand fw-semibold" href="@HangfireOptions.Value.RoutePrefixNormalized">Hangfire.Extension</a>
-                <nav class="navbar-nav">
-                    <a class="nav-link active" aria-current="page" href="@HangfireOptions.Value.RoutePrefixNormalized">Recurring jobs</a>
-                </nav>
+    <header>
+        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
+            <div class="container">
+                <a class="navbar-brand" href="@HangfireOptions.Value.RoutePrefixNormalized">Hangfire.Extension</a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
+                        aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
+                    <ul class="navbar-nav flex-grow-1">
+                        <li class="nav-item">
+                            <a class="nav-link text-dark" href="@HangfireOptions.Value.RoutePrefixNormalized">Recurring jobs</a>
+                        </li>
+                    </ul>
+                    <ul class="navbar-nav ms-auto">
+                        <li class="nav-item">
+                            <a class="nav-link text-dark" href="/">Home</a>
+                        </li>
+                    </ul>
+                </div>
             </div>
-        </header>
-        <main class="container-xl py-4 py-lg-5">
+        </nav>
+    </header>
+    <div class="container">
+        <main role="main" class="pb-3">
             @RenderBody()
         </main>
     </div>
