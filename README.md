@@ -6,9 +6,11 @@ It is meant to plug into an existing ASP.NET Core application that already uses 
 
 ## What It Provides
 
-- A recurring jobs page
-- Trigger, enable, and disable actions
-- Cron editing with validation
+- A recurring jobs page with search and pagination
+- Inline trigger and active or disabled toggle actions
+- Cron editing from an index-page popup, with a full edit page fallback
+- Human-readable cron descriptions and upcoming-run previews
+- Support for valid schedules with no future occurrence for manual-trigger-only jobs
 - A small JSON API for recurring job operations
 - `SkipConcurrentExecutionAttribute` for skip-on-overlap behavior
 
@@ -75,7 +77,7 @@ This registers:
 
 - recurring job services
 - Razor Pages conventions for the embedded UI
-- cron validation
+- cron preview services
 - the recurring jobs API options
 
 ### 3. Map Razor Pages And The API
@@ -97,7 +99,7 @@ app.Run();
 
 The UI route itself is configured through `AddHangfireRecurringJobs(...)` and served by normal Razor Pages endpoint mapping.
 
-`MapStaticAssets()` is still recommended for the library's packaged static assets, but the default recurring jobs page theme no longer depends on separate runtime requests for Bootstrap or `hangfire-extension.css`.
+`MapStaticAssets()` is still recommended for the library's packaged static assets, but the default recurring jobs page no longer depends on separate runtime requests for Bootstrap, `hangfire-extension.css`, or the recurring jobs JavaScript.
 
 Package-owned static files are served from `/hangfire-extension/...`, so the library does not compete with a host application's own `wwwroot/lib/...`, `wwwroot/css/...`, or root files such as `favicon.ico`.
 
@@ -111,9 +113,11 @@ With the example above, the canonical UI routes are:
 The API routes are:
 
 - `GET /recurring-jobs/api/jobs/recurring`
+- `GET /recurring-jobs/api/jobs/recurring/{id}`
 - `POST /recurring-jobs/api/jobs/recurring/{id}/trigger`
 - `POST /recurring-jobs/api/jobs/recurring/{id}/enable`
 - `POST /recurring-jobs/api/jobs/recurring/{id}/disable`
+- `GET /recurring-jobs/api/jobs/recurring/preview?cronExpression=...`
 - `PUT /recurring-jobs/api/jobs/recurring/{id}`
 
 If you want a different base path, configure it once in `AddHangfireRecurringJobs(...)`.
@@ -144,9 +148,11 @@ builder.Services.AddHangfireRecurringJobs(options =>
 
 If `Styles` is not configured, the library inlines its embedded fallback theme automatically. If `Styles` contains entries, the library still keeps its embedded scoped base styles and then renders each configured stylesheet link in order so hosts can layer Bootstrap and site theme CSS on top.
 
-## Registering Definitions
+## Registered Definitions
 
 Enable and cron-update operations need a code-based definition source so the library can safely recreate the recurring job.
+
+The recurring jobs list is definition-driven. Jobs that exist only in Hangfire storage and no longer have a matching code registration are treated as orphaned entries and are not shown in the admin UI.
 
 ```csharp
 builder.Services.AddRecurringJobDefinition<ReportJobs>(
@@ -209,6 +215,22 @@ app.MapRazorPages();
 app.Run();
 ```
 
+## UI Behavior
+
+- The `Status` column owns the active or disabled lifecycle state and uses a toggle switch.
+- `Execution` shows the last known run details, including last failure information.
+- `Trigger`, toggle, and popup cron save update the affected row inline instead of refreshing the whole page.
+- `Trigger` and cron save show toast feedback. Successful enable or disable relies on the visible row-state change instead.
+- The index page uses a popup cron editor on larger screens, and the full edit page remains available as the fallback route.
+
+## Cron Editing
+
+Cron expressions are previewed as you type.
+
+- Parseable expressions show a plain-English description and the next few run times.
+- Expressions that are valid but have no future occurrence are allowed and shown as manual-trigger-only schedules.
+- Saving a disabled job applies the new schedule and enables it again.
+
 ## SkipConcurrentExecutionAttribute
 
 Use `SkipConcurrentExecutionAttribute` when overlapping executions should be skipped instead of waiting.
@@ -244,3 +266,4 @@ Current automated coverage includes:
 - The embedded UI is implemented with Razor Pages inside the library project.
 - The library includes static web assets for the embedded UI under `/hangfire-extension/...`.
 - `MapRazorPages()` is still required in the host, because the UI is delivered as Razor Pages.
+- `MapHangfireRecurringJobsApi()` maps the JSON endpoints only; the UI still comes from Razor Pages under the configured route prefix.
