@@ -1,0 +1,271 @@
+@page
+@model Hangfire.RecurringJobs.Pages.RecurringJobs.IndexModel
+@inject Microsoft.Extensions.Options.IOptions<Hangfire.RecurringJobs.RecurringJobsOptions> HangfireOptions
+@{
+    ViewData["Title"] = "Recurring Jobs";
+}
+
+<section class="d-grid gap-4"
+         data-hfext-api-base="@HangfireOptions.Value.ApiRoutePrefix">
+    <div class="d-flex flex-column gap-2">
+        <p class="text-uppercase text-primary fw-semibold small mb-0">Hangfire Extension</p>
+        <div>
+            <h1 class="display-6 mb-2">Recurring jobs</h1>
+            <p class="text-body-secondary mb-0">Inspect schedules, trigger work, and update cron expressions with standard Bootstrap UI building blocks.</p>
+        </div>
+    </div>
+
+    <div class="alert @(Model.StatusSucceeded == true ? "alert-success" : "alert-danger") shadow-sm mb-0"
+         role="alert"
+         data-hfext-status-message
+         @if (string.IsNullOrWhiteSpace(Model.StatusMessage)) { <text>hidden</text> }>
+        @Model.StatusMessage
+    </div>
+
+    <div class="hfext-toast-region" data-hfext-toast-region aria-live="polite" aria-atomic="true"></div>
+
+    <form method="get" class="card shadow-sm">
+        <div class="card-body">
+            <div class="row g-3 align-items-end">
+                <div class="col-lg-4">
+                    <p class="h5 mb-1">Find a job quickly</p>
+                    <p class="text-body-secondary mb-0">Search by recurring job id, CLR type, method name, or queue.</p>
+                </div>
+                <div class="col-lg-5">
+                    <label asp-for="Search" class="form-label">Search</label>
+                    <input asp-for="Search" class="form-control" placeholder="Job id, type, method, queue" />
+                </div>
+                <div class="col-lg-3">
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary flex-fill">Apply</button>
+                        <a asp-page="./Index" class="btn btn-outline-secondary flex-fill">Reset</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+
+    <div class="card shadow-sm">
+        <div class="card-header">
+            <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-end gap-3">
+                <div>
+                    <p class="h5 mb-1">Scheduled jobs</p>
+                    <p class="text-body-secondary mb-0">Review execution details, queue placement, and operational status before taking action.</p>
+                </div>
+                <div class="d-flex flex-column flex-sm-row gap-2 text-body-secondary small">
+                    <span>@Model.TotalCount recurring job(s)</span>
+                    <span>Page @Model.PageNumber@(Model.TotalPages > 0 ? $" of {Model.TotalPages}" : string.Empty)</span>
+                </div>
+            </div>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0 hfext-jobs-table">
+                <thead class="table-light">
+                <tr>
+                    <th>Job</th>
+                    <th>Schedule</th>
+                    <th>Execution</th>
+                    <th>Queue</th>
+                    <th>Status</th>
+                    <th class="text-end">Actions</th>
+                </tr>
+                </thead>
+                <tbody>
+                @foreach (var job in Model.Jobs)
+                {
+                    <tr data-hfext-job-row
+                        data-job-id="@job.Id"
+                        data-is-disabled="@job.IsDisabled.ToString().ToLowerInvariant()"
+                        data-is-system-error="@job.IsSystemError.ToString().ToLowerInvariant()">
+                        <td>
+                            <div class="fw-semibold">@job.Id</div>
+                            <div class="small text-body-secondary" data-hfext-job-type>@job.JobType</div>
+                            <div class="small text-body-secondary" data-hfext-method-name>@job.MethodName</div>
+                        </td>
+                        <td>
+                            <code data-hfext-cron-expression-display>@(job.CronExpression ?? "-")</code>
+                            <div class="small text-body-secondary mt-1" data-hfext-next-execution>
+                                Next: @(job.NextExecution?.ToLocalTime().ToString("yyyy-MM-dd HH:mm:ss zzz") ?? "-")
+                            </div>
+                        </td>
+                        <td>
+                            <div data-hfext-last-execution>
+                                Last: @(job.LastExecution?.ToLocalTime().ToString("yyyy-MM-dd HH:mm:ss zzz") ?? "-")
+                            </div>
+                            <div class="small text-body-secondary" data-hfext-last-job-id>
+                                Last job id: @(job.LastJobId ?? "-")
+                            </div>
+                            <div class="mt-1"
+                                 data-hfext-error-badge-wrapper
+                                 hidden="@(string.IsNullOrWhiteSpace(job.Error) ? "hidden" : null)">
+                                <span class="badge text-bg-danger">Last run failed</span>
+                            </div>
+                            <div class="small text-body-secondary mt-1"
+                                 data-hfext-error-text
+                                 hidden="@(string.IsNullOrWhiteSpace(job.Error) ? "hidden" : null)">
+                                @job.Error
+                            </div>
+                        </td>
+                        <td data-hfext-queue>@job.Queue</td>
+                        <td>
+                            @if (job.IsSystemError)
+                            {
+                                <span class="badge text-bg-danger" data-hfext-status-badge>Unavailable</span>
+                            }
+                            else
+                            {
+                                <form method="post" asp-page-handler="SetEnabled" class="hfext-status-form" data-hfext-inline-form="toggle">
+                                    <input type="hidden" name="id" value="@job.Id" />
+                                    <input type="hidden" name="enabled" value="@(job.IsDisabled.ToString().ToLowerInvariant())" data-hfext-enabled-input />
+                                    <div class="hfext-status-copy">
+                                        <span class="badge @(job.IsDisabled ? "text-bg-secondary" : "text-bg-success")" data-hfext-status-badge>
+                                            @(job.IsDisabled ? "Disabled" : "Active")
+                                        </span>
+                                    </div>
+                                    <button type="submit"
+                                            class="hfext-switch @(job.IsDisabled ? "is-off" : "is-on")"
+                                            role="switch"
+                                            aria-checked="@((!job.IsDisabled).ToString().ToLowerInvariant())"
+                                            aria-label="@(job.IsDisabled ? $"Enable {job.Id}" : $"Disable {job.Id}")">
+                                        <span class="hfext-switch-track" aria-hidden="true">
+                                            <span class="hfext-switch-thumb"></span>
+                                        </span>
+                                        <span class="hfext-switch-label">@(job.IsDisabled ? "Enable" : "Disable")</span>
+                                    </button>
+                                </form>
+                            }
+                        </td>
+                        <td class="text-end">
+                            <div class="d-flex justify-content-end gap-2 hfext-action-row">
+                                <form method="post"
+                                      asp-page-handler="Trigger"
+                                      class="mb-0"
+                                      data-hfext-trigger-form
+                                      data-hfext-inline-form="trigger"
+                                      hidden="@((job.IsSystemError || job.IsDisabled) ? "hidden" : null)">
+                                        <input type="hidden" name="id" value="@job.Id" />
+                                        <button type="submit"
+                                                class="btn btn-sm btn-outline-primary hfext-action-btn"
+                                                title="Trigger"
+                                                aria-label="Trigger @job.Id">
+                                            <svg class="bi" aria-hidden="true" viewBox="0 0 16 16" fill="currentColor">
+                                                <path d="M10.804 8 5 4.633v6.734z" />
+                                            </svg>
+                                        </button>
+                                    </form>
+                                @if (!job.IsSystemError)
+                                {
+                                    <a asp-page="./Edit"
+                                       asp-route-id="@job.Id"
+                                       class="btn btn-sm btn-primary hfext-action-btn"
+                                       title="Edit cron"
+                                       aria-label="Edit cron for @job.Id"
+                                       data-hfext-edit-cron-link
+                                       data-hfext-job-id="@job.Id"
+                                       data-hfext-job-type="@job.JobType"
+                                       data-hfext-method-name="@job.MethodName"
+                                       data-hfext-cron-expression="@job.CronExpression"
+                                       data-hfext-is-disabled="@job.IsDisabled.ToString().ToLowerInvariant()">
+                                        <svg class="bi" aria-hidden="true" viewBox="0 0 16 16" fill="currentColor">
+                                            <path d="m12.146.146 3.708 3.708a.5.5 0 0 1 0 .708l-9.5 9.5L3 15l.938-3.354 9.5-9.5a.5.5 0 0 1 .708 0M11.207 3 13 4.793 14.793 3 13 1.207zM12.5 5.293 10.707 3.5 4.5 9.707V11.5h1.793z" />
+                                        </svg>
+                                    </a>
+                                }
+                            </div>
+                        </td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <dialog class="hfext-dialog" data-hfext-cron-dialog>
+        <form method="post"
+              asp-page-handler="UpdateCron"
+              class="d-grid gap-3"
+              data-hfext-cron-editor
+              data-hfext-cron-preview-url="@($"{HangfireOptions.Value.ApiRoutePrefix}/preview")"
+              data-hfext-inline-save="true">
+            <div class="d-flex justify-content-between align-items-start gap-3">
+                <div>
+                    <p class="text-uppercase text-primary fw-semibold small mb-1">Recurring job</p>
+                    <h2 class="h5 mb-1">Edit cron</h2>
+                    <p class="lead mb-1" data-hfext-dialog-job-id></p>
+                    <p class="text-body-secondary mb-1" data-hfext-dialog-job-type></p>
+                    <p class="text-body-secondary mb-0" data-hfext-dialog-method-name></p>
+                </div>
+                <button type="button" class="btn btn-outline-secondary" data-hfext-close-dialog>Close</button>
+            </div>
+
+            <input type="hidden" name="id" data-hfext-cron-id />
+
+            <div>
+                <label for="hfext-modal-cron-expression" class="form-label">Cron expression</label>
+                <input id="hfext-modal-cron-expression"
+                       name="cronExpression"
+                       class="form-control"
+                       data-hfext-cron-input />
+            </div>
+
+            <p class="small text-body-secondary mb-0" data-hfext-disabled-note hidden>
+                Saving a disabled job will apply the new schedule and enable it again.
+            </p>
+
+            <div class="hfext-cron-preview" data-hfext-cron-preview>
+                <p class="hfext-cron-summary mb-1" data-hfext-cron-summary></p>
+                <p class="text-body-secondary mb-0" data-hfext-cron-description hidden></p>
+                <div data-hfext-cron-occurrences-wrapper hidden>
+                    <p class="small text-body-secondary mb-1">Upcoming runs</p>
+                    <ul class="hfext-cron-occurrences mb-0" data-hfext-cron-occurrences></ul>
+                </div>
+            </div>
+
+            <div class="d-flex flex-wrap justify-content-end gap-2">
+                <button type="submit" class="btn btn-primary">Save</button>
+                <a href="#" class="btn btn-outline-secondary" data-hfext-open-full-page>Open full page</a>
+                <button type="button" class="btn btn-outline-secondary" data-hfext-close-dialog>Cancel</button>
+            </div>
+        </form>
+    </dialog>
+
+    @if (Model.TotalPages > 1)
+    {
+        <nav aria-label="Recurring jobs paging">
+            <ul class="pagination justify-content-between mb-0">
+                <li class="page-item @(Model.CanGoToPreviousPage ? string.Empty : "disabled")">
+                    @if (Model.CanGoToPreviousPage)
+                    {
+                        <a class="page-link"
+                           asp-page="./Index"
+                           asp-route-search="@Model.Search"
+                           asp-route-pageNumber="@(Model.PageNumber - 1)">Previous</a>
+                    }
+                    else
+                    {
+                        <span class="page-link">Previous</span>
+                    }
+                </li>
+                <li class="page-item @(Model.CanGoToNextPage ? string.Empty : "disabled")">
+                    @if (Model.CanGoToNextPage)
+                    {
+                        <a class="page-link"
+                           asp-page="./Index"
+                           asp-route-search="@Model.Search"
+                           asp-route-pageNumber="@(Model.PageNumber + 1)">Next</a>
+                    }
+                    else
+                    {
+                        <span class="page-link">Next</span>
+                    }
+                </li>
+            </ul>
+        </nav>
+    }
+</section>
+
+@section Scripts {
+    <script>
+        @Html.Raw(Hangfire.RecurringJobs.Services.RecurringJobsScriptProvider.GetScript())
+    </script>
+}

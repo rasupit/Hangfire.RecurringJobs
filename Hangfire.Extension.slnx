@@ -1,8 +1,0 @@
-<Solution>
-  <Folder Name="/src/">
-    <Project Path="src/Hangfire.Extension/Hangfire.Extension.csproj" />
-  </Folder>
-  <Folder Name="/tests/">
-    <Project Path="tests/Hangfire.Extension.Tests/Hangfire.Extension.Tests.csproj" />
-  </Folder>
-</Solution>

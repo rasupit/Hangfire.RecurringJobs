@@ -1,0 +1,8 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/Hangfire.RecurringJobs/Hangfire.RecurringJobs.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/Hangfire.RecurringJobs.Tests/Hangfire.RecurringJobs.Tests.csproj" />
+  </Folder>
+</Solution>

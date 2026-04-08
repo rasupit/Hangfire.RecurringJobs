@@ -1,6 +1,6 @@
-# Hangfire.Extension
+# Hangfire.RecurringJobs
 
-`Hangfire.Extension` is a small ASP.NET Core admin surface for Hangfire recurring jobs.
+`Rasupit.Hangfire.RecurringJobs` is a small ASP.NET Core admin surface for Hangfire recurring jobs.
 
 It is meant to plug into an existing ASP.NET Core application that already uses Hangfire and already owns its real storage configuration.
 
@@ -16,21 +16,22 @@ It is meant to plug into an existing ASP.NET Core application that already uses 
 
 ## Design Goals
 
-- Internal tool, not public-facing UI
+- Admin-focused UI for Hangfire recurring jobs
+- Intended for operational or back-office use, not end-user-facing screens
 - Simple host integration
 - Public Hangfire APIs only
-- One consumer namespace: `Hangfire.Extension`
+- One consumer namespace: `Hangfire.RecurringJobs`
 
 ## Package And Namespace
 
 Current package identity:
 
-- `Hangfire.Extension`
+- `Rasupit.Hangfire.RecurringJobs`
 
 Consumer namespace:
 
 ```csharp
-using Hangfire.Extension;
+using Hangfire.RecurringJobs;
 ```
 
 ## Expected Host Setup
@@ -65,7 +66,7 @@ builder.Services.AddHangfire(configuration =>
 ### 2. Register The Recurring Jobs UI
 
 ```csharp
-using Hangfire.Extension;
+using Hangfire.RecurringJobs;
 
 builder.Services.AddAuthorizationBuilder()
     .AddPolicy("RecurringJobAdmin", policy => policy.RequireRole("Admin"));
@@ -180,7 +181,7 @@ builder.Services.AddRecurringJobDefinition(
 
 ```csharp
 using Hangfire;
-using Hangfire.Extension;
+using Hangfire.RecurringJobs;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -236,7 +237,7 @@ Cron expressions are previewed as you type.
 Use `SkipConcurrentExecutionAttribute` when overlapping executions should be skipped instead of waiting.
 
 ```csharp
-using Hangfire.Extension;
+using Hangfire.RecurringJobs;
 
 public sealed class ReportJobs
 {

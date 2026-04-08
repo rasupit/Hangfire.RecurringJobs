@@ -1,0 +1,37 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <IsPackable>true</IsPackable>
+    <AssemblyName>Hangfire.RecurringJobs</AssemblyName>
+    <RootNamespace>Hangfire.RecurringJobs</RootNamespace>
+    <PackageId>Rasupit.Hangfire.RecurringJobs</PackageId>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageLicenseFile>LICENSE</PackageLicenseFile>
+    <Version>0.1.30</Version>
+    <Title>Hangfire Recurring Jobs</Title>
+    <Description>Recurring job admin UI and helpers for Hangfire ASP.NET Core applications.</Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="..\..\README.md" Pack="true" PackagePath="\" Link="README.md" />
+    <None Include="..\..\LICENSE" Pack="true" PackagePath="\" Link="LICENSE" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="wwwroot\hangfire-extension\css\hangfire-extension.css"
+                      LogicalName="Hangfire.RecurringJobs.Styles.css" />
+    <EmbeddedResource Include="wwwroot\hangfire-extension\js\recurring-jobs.js"
+                      LogicalName="Hangfire.RecurringJobs.Script.js" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="CronExpressionDescriptor" Version="2.45.0" />
+    <PackageReference Include="Cronos" Version="0.11.1" />
+    <PackageReference Include="Hangfire.AspNetCore" Version="1.8.23" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+  </ItemGroup>
+
+</Project>
