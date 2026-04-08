@@ -484,6 +484,67 @@ small {
   margin: 0;
 }
 
+.hfext-status-form {
+  display: grid;
+  gap: 0.75rem;
+  margin: 0;
+}
+
+.hfext-status-copy {
+  display: flex;
+  align-items: center;
+}
+
+.hfext-switch {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 0.75rem;
+  min-height: auto;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--app-text);
+}
+
+.hfext-switch:hover {
+  transform: none;
+}
+
+.hfext-switch-track {
+  position: relative;
+  width: 3rem;
+  height: 1.75rem;
+  border-radius: 9999px;
+  background: rgba(0, 0, 0, 0.12);
+  transition: background-color 120ms ease;
+}
+
+.hfext-switch-thumb {
+  position: absolute;
+  top: 0.125rem;
+  left: 0.125rem;
+  width: 1.5rem;
+  height: 1.5rem;
+  border-radius: 50%;
+  background: #ffffff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+  transition: transform 120ms ease;
+}
+
+.hfext-switch.is-on .hfext-switch-track {
+  background: rgba(42, 157, 153, 0.35);
+}
+
+.hfext-switch.is-on .hfext-switch-thumb {
+  transform: translateX(1.25rem);
+}
+
+.hfext-switch-label {
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
 .hfext-action-btn {
   width: 2.5rem;
   min-width: 2.5rem;
@@ -578,6 +639,103 @@ small {
 .text-bg-danger {
   background: rgba(221, 91, 0, 0.12);
   color: var(--app-danger);
+}
+
+.hfext-dialog {
+  width: min(38rem, calc(100vw - 1.5rem));
+  border: 0;
+  border-radius: var(--app-radius-feature);
+  padding: 0;
+  box-shadow: rgba(0, 0, 0, 0.18) 0 24px 80px;
+}
+
+.hfext-dialog::backdrop {
+  background: rgba(15, 23, 42, 0.4);
+  backdrop-filter: blur(6px);
+}
+
+.hfext-dialog form {
+  padding: 1.5rem;
+}
+
+.hfext-cron-preview {
+  display: grid;
+  gap: 0.75rem;
+  padding: 1rem;
+  border: 1px solid var(--app-border-color);
+  border-radius: 0.875rem;
+  background: rgba(0, 117, 222, 0.04);
+}
+
+.hfext-cron-summary {
+  font-weight: 600;
+}
+
+.hfext-cron-summary.is-invalid {
+  color: var(--app-danger);
+}
+
+.hfext-cron-summary.is-valid {
+  color: #1e6f6c;
+}
+
+.hfext-cron-occurrences {
+  margin: 0;
+  padding-left: 1rem;
+}
+
+.hfext-toast-region {
+  position: fixed;
+  top: 1rem;
+  right: 1rem;
+  z-index: 1200;
+  display: grid;
+  gap: 0.75rem;
+  pointer-events: none;
+}
+
+.hfext-toast {
+  width: min(24rem, calc(100vw - 2rem));
+  padding: 1rem 1rem 0.9rem;
+  border: 1px solid var(--app-border-color);
+  border-radius: 1rem;
+  background: rgba(255, 255, 255, 0.96);
+  box-shadow: rgba(0, 0, 0, 0.18) 0 18px 40px;
+  opacity: 0;
+  transform: translateY(-0.5rem);
+  transition: opacity 160ms ease, transform 160ms ease;
+}
+
+.hfext-toast.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.hfext-toast.is-success {
+  border-color: rgba(42, 157, 153, 0.3);
+}
+
+.hfext-toast.is-error {
+  border-color: rgba(221, 91, 0, 0.28);
+}
+
+.hfext-toast-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.5rem;
+}
+
+.hfext-toast-time {
+  color: var(--app-text-muted);
+  font-size: 0.8rem;
+}
+
+.hfext-toast-message {
+  margin: 0;
+  color: var(--app-text);
+  font-size: 0.92rem;
 }
 
 .pagination {
@@ -720,6 +878,33 @@ code {
       width: auto;
     }
   }
+
+@media (max-width: 640px) {
+  .hfext-dialog {
+    width: 100vw;
+    max-width: 100vw;
+    min-height: 100vh;
+    margin: 0;
+    border-radius: 0;
+  }
+
+  .hfext-dialog form {
+    min-height: 100vh;
+    align-content: start;
+    padding: 1rem;
+  }
+
+  .hfext-toast-region {
+    top: auto;
+    right: 0.75rem;
+    bottom: 0.75rem;
+    left: 0.75rem;
+  }
+
+  .hfext-toast {
+    width: 100%;
+  }
+}
 
 .flex-grow-1 {
     flex-grow: 1 !important;

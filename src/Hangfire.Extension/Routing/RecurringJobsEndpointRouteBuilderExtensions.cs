@@ -57,6 +57,27 @@ public static class RecurringJobsEndpointRouteBuilderExtensions
             }
         });
 
+        recurringJobs.MapGet("/{id}", async (
+            string id,
+            RecurringJobAdminService service,
+            CancellationToken cancellationToken) =>
+        {
+            try
+            {
+                var job = await service.GetJobAsync(id, cancellationToken);
+                return job is null
+                    ? Results.NotFound()
+                    : Results.Ok(job);
+            }
+            catch
+            {
+                return Results.Problem(
+                    title: "Recurring job unavailable",
+                    detail: UnexpectedErrorMessage,
+                    statusCode: StatusCodes.Status500InternalServerError);
+            }
+        });
+
         recurringJobs.MapPost("/{id}/trigger", async Task<IResult> (
             string id,
             RecurringJobAdminService service,
@@ -82,6 +103,23 @@ public static class RecurringJobsEndpointRouteBuilderExtensions
         {
             return await ExecuteOperationAsync(
                 () => service.DisableAsync(id, cancellationToken));
+        });
+
+        recurringJobs.MapGet("/preview", (
+            [FromQuery] string cronExpression,
+            CronExpressionPreviewService previewService) =>
+        {
+            try
+            {
+                return Results.Ok(previewService.CreatePreview(cronExpression));
+            }
+            catch
+            {
+                return Results.Problem(
+                    title: "Cron preview unavailable",
+                    detail: UnexpectedErrorMessage,
+                    statusCode: StatusCodes.Status500InternalServerError);
+            }
         });
 
         recurringJobs.MapPut("/{id}", async Task<IResult> (

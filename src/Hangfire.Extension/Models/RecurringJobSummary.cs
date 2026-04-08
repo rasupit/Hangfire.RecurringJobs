@@ -10,4 +10,5 @@ public sealed record RecurringJobSummary(
     DateTimeOffset? LastExecution,
     string? LastJobId,
     string? Error,
-    bool IsDisabled);
+    bool IsDisabled,
+    bool IsSystemError = false);

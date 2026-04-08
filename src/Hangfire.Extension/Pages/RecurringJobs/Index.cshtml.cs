@@ -2,6 +2,7 @@ using Hangfire.Extension.Models;
 using Hangfire.Extension.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using Microsoft.AspNetCore.Routing;
 
 namespace Hangfire.Extension.Pages.RecurringJobs;
 
@@ -54,12 +55,39 @@ public sealed class IndexModel(RecurringJobAdminService recurringJobAdminService
     public async Task<IActionResult> OnPostEnableAsync(string id, CancellationToken cancellationToken)
         => await ExecuteActionAsync(() => recurringJobAdminService.EnableAsync(id, cancellationToken));
 
+    public async Task<IActionResult> OnPostSetEnabledAsync(string id, bool enabled, CancellationToken cancellationToken)
+        => await ExecuteActionAsync(() => enabled
+            ? recurringJobAdminService.EnableAsync(id, cancellationToken)
+            : recurringJobAdminService.DisableAsync(id, cancellationToken));
+
+    public async Task<IActionResult> OnPostUpdateCronAsync(string id, string cronExpression, CancellationToken cancellationToken)
+        => await ExecuteActionAsync(() => recurringJobAdminService.UpdateCronAsync(id, cronExpression, cancellationToken));
+
     private async Task<IActionResult> ExecuteActionAsync(Func<Task<RecurringJobOperationResult>> action)
     {
         var result = await action();
         StatusMessage = result.Message;
         StatusSucceeded = result.Succeeded;
 
-        return RedirectToPage(new { Search, PageNumber });
+        return RedirectToPage(routeValues: BuildCanonicalRouteValues());
+    }
+
+    private RouteValueDictionary? BuildCanonicalRouteValues()
+    {
+        RouteValueDictionary? routeValues = null;
+
+        if (!string.IsNullOrWhiteSpace(Search))
+        {
+            routeValues = [];
+            routeValues["search"] = Search;
+        }
+
+        if (PageNumber > 1)
+        {
+            routeValues ??= [];
+            routeValues["pageNumber"] = PageNumber;
+        }
+
+        return routeValues;
     }
 }

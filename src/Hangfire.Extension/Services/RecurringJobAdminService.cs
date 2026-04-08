@@ -26,10 +26,10 @@ public sealed class RecurringJobAdminService
     }
 
     public Task<RecurringJobPage> GetJobsAsync(RecurringJobQuery query, CancellationToken cancellationToken = default)
-        => storage.GetJobsAsync(query, cancellationToken);
+        => GetDefinitionBackedJobsAsync(query, cancellationToken);
 
     public Task<RecurringJobSummary?> GetJobAsync(string recurringJobId, CancellationToken cancellationToken = default)
-        => storage.GetJobAsync(recurringJobId, cancellationToken);
+        => GetDefinitionBackedJobAsync(recurringJobId, cancellationToken);
 
     public Task<RecurringJobOperationResult> TriggerAsync(string recurringJobId, CancellationToken cancellationToken = default)
         => ExecuteOperationAsync(recurringJobId, "triggered", () => recurringJobManager.Trigger(recurringJobId));
@@ -127,4 +127,85 @@ public sealed class RecurringJobAdminService
                     $"Failed to process recurring job '{recurringJobId}'."));
         }
     }
+
+    private async Task<RecurringJobPage> GetDefinitionBackedJobsAsync(
+        RecurringJobQuery query,
+        CancellationToken cancellationToken)
+    {
+        var storageJobs = await storage.GetJobsAsync(cancellationToken);
+        if (storageJobs.Count == 1 && storageJobs[0].IsSystemError)
+        {
+            return new RecurringJobPage(
+                [storageJobs[0]],
+                query.SafePage,
+                query.SafePageSize,
+                1,
+                query.Search);
+        }
+
+        var storageJobsById = storageJobs
+            .ToDictionary(job => job.Id, StringComparer.OrdinalIgnoreCase);
+
+        var filteredJobs = definitions.Values
+            .OrderBy(definition => definition.Id, StringComparer.OrdinalIgnoreCase)
+            .Select(definition => storageJobsById.TryGetValue(definition.Id, out var storageJob)
+                ? storageJob
+                : CreateDisabledSummary(definition))
+            .Where(job => MatchesSearch(job, query.Search))
+            .ToArray();
+
+        var items = filteredJobs
+            .Skip((query.SafePage - 1) * query.SafePageSize)
+            .Take(query.SafePageSize)
+            .ToArray();
+
+        return new RecurringJobPage(
+            Items: items,
+            Page: query.SafePage,
+            PageSize: query.SafePageSize,
+            TotalCount: filteredJobs.Length,
+            Search: query.Search);
+    }
+
+    private async Task<RecurringJobSummary?> GetDefinitionBackedJobAsync(
+        string recurringJobId,
+        CancellationToken cancellationToken)
+    {
+        if (!definitions.TryGetValue(recurringJobId, out var definition))
+        {
+            return null;
+        }
+
+        var job = await storage.GetJobAsync(recurringJobId, cancellationToken);
+        return job ?? CreateDisabledSummary(definition);
+    }
+
+    private static bool MatchesSearch(RecurringJobSummary job, string? search)
+    {
+        if (string.IsNullOrWhiteSpace(search))
+        {
+            return true;
+        }
+
+        return Contains(job.Id, search)
+               || Contains(job.JobType, search)
+               || Contains(job.MethodName, search)
+               || Contains(job.Queue, search);
+    }
+
+    private static bool Contains(string? value, string search)
+        => value?.Contains(search, StringComparison.OrdinalIgnoreCase) ?? false;
+
+    private static RecurringJobSummary CreateDisabledSummary(RecurringJobDefinition definition)
+        => new(
+            Id: definition.Id,
+            CronExpression: definition.CronExpression,
+            Queue: definition.Queue,
+            JobType: definition.Job.Type.FullName,
+            MethodName: definition.Job.Method.Name,
+            NextExecution: null,
+            LastExecution: null,
+            LastJobId: null,
+            Error: null,
+            IsDisabled: true);
 }

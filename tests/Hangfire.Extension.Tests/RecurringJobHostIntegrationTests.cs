@@ -120,6 +120,21 @@ public sealed class RecurringJobHostIntegrationTests
         Assert.Contains(page.Items, item => item.Id == "host-job-beta");
     }
 
+    [Fact]
+    public async Task CronPreviewEndpoint_ReturnsHumanReadablePreview()
+    {
+        await using var factory = new RecurringJobsWebAppFactory();
+        using var client = factory.CreateHttpsClient();
+
+        var preview = await client.GetFromJsonAsync<RecurringJobCronPreview>(
+            "/recurring-jobs/api/jobs/recurring/preview?cronExpression=0%202%20*%20*%20*");
+
+        Assert.NotNull(preview);
+        Assert.True(preview!.IsValid);
+        Assert.False(string.IsNullOrWhiteSpace(preview.Description));
+        Assert.NotEmpty(preview.UpcomingOccurrences);
+    }
+
     private sealed class RecurringJobsWebAppFactory : WebApplicationFactory<Program>, IAsyncDisposable
     {
         private readonly SQLiteStorage storage;
@@ -172,6 +187,24 @@ public sealed class RecurringJobHostIntegrationTests
 
                 services.AddSingleton<JobStorage>(storage);
                 services.AddSingleton<IRecurringJobManager>(_ => new RecurringJobManager(storage));
+                services.AddSingleton(new RecurringJobDefinition(
+                    "host-job-alpha",
+                    Job.FromExpression(() => SampleRecurringJobs.RunAlpha()),
+                    "0 * * * *",
+                    TimeZoneInfo.Utc,
+                    "default"));
+                services.AddSingleton(new RecurringJobDefinition(
+                    "host-job-beta",
+                    Job.FromExpression(() => SampleRecurringJobs.RunBeta()),
+                    "15 * * * *",
+                    TimeZoneInfo.Utc,
+                    "default"));
+                services.AddSingleton(new RecurringJobDefinition(
+                    "host-job-edit",
+                    Job.FromExpression(() => SampleRecurringJobs.RunAlpha()),
+                    "0 * * * *",
+                    TimeZoneInfo.Utc,
+                    "default"));
             });
         }
 

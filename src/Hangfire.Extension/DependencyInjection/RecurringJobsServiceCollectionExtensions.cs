@@ -34,6 +34,7 @@ public static class RecurringJobsServiceCollectionExtensions
         ArgumentNullException.ThrowIfNull(configure);
 
         services.TryAddSingleton<CronExpressionValidator>();
+        services.TryAddSingleton<CronExpressionPreviewService>();
         services.TryAddSingleton<RecurringJobStorage>();
         services.TryAddSingleton<IRecurringJobManager>(serviceProvider =>
             new RecurringJobManager(serviceProvider.GetRequiredService<JobStorage>()));

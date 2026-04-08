@@ -8,53 +8,55 @@ namespace Hangfire.Extension.Hangfire;
 
 public sealed class RecurringJobStorage(JobStorage jobStorage)
 {
-    public Task<RecurringJobPage> GetJobsAsync(RecurringJobQuery query, CancellationToken cancellationToken = default)
+    public Task<IReadOnlyList<RecurringJobSummary>> GetJobsAsync(CancellationToken cancellationToken = default)
     {
         try
         {
             using var connection = jobStorage.GetConnection();
-            var jobs = connection.GetRecurringJobs();
+            var items = connection.GetRecurringJobs()
+                .OrderBy(job => job.Id, StringComparer.OrdinalIgnoreCase)
+                .Select(Map)
+                .ToArray();
+
+            return Task.FromResult<IReadOnlyList<RecurringJobSummary>>(items);
+        }
+        catch
+        {
+            return Task.FromResult<IReadOnlyList<RecurringJobSummary>>([CreateStorageErrorSummary()]);
+        }
+    }
+
+    public async Task<RecurringJobPage> GetJobsAsync(RecurringJobQuery query, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var jobs = await GetJobsAsync(cancellationToken);
             var filteredJobs = jobs
                 .Where(job => MatchesSearch(job, query.Search))
-                .OrderBy(job => job.Id, StringComparer.OrdinalIgnoreCase)
                 .ToArray();
 
             var items = filteredJobs
                 .Skip((query.SafePage - 1) * query.SafePageSize)
                 .Take(query.SafePageSize)
-                .Select(Map)
                 .ToArray();
 
-            return Task.FromResult(new RecurringJobPage(
+            return new RecurringJobPage(
                 Items: items,
                 Page: query.SafePage,
                 PageSize: query.SafePageSize,
                 TotalCount: filteredJobs.Length,
-                Search: query.Search));
+                Search: query.Search);
         }
         catch
         {
-            var failedItems = new[]
-            {
-                new RecurringJobSummary(
-                    Id: "storage-error",
-                    CronExpression: null,
-                    Queue: null,
-                    JobType: null,
-                    MethodName: null,
-                    NextExecution: null,
-                    LastExecution: null,
-                    LastJobId: null,
-                    Error: "Recurring job data is temporarily unavailable.",
-                    IsDisabled: true)
-            };
+            var failedItems = new[] { CreateStorageErrorSummary() };
 
-            return Task.FromResult(new RecurringJobPage(
+            return new RecurringJobPage(
                 Items: failedItems,
                 Page: query.SafePage,
                 PageSize: query.SafePageSize,
                 TotalCount: failedItems.Length,
-                Search: query.Search));
+                Search: query.Search);
         }
     }
 
@@ -87,6 +89,19 @@ public sealed class RecurringJobStorage(JobStorage jobStorage)
                || Contains(job.Queue, search);
     }
 
+    private static bool MatchesSearch(RecurringJobSummary job, string? search)
+    {
+        if (string.IsNullOrWhiteSpace(search))
+        {
+            return true;
+        }
+
+        return Contains(job.Id, search)
+               || Contains(job.JobType, search)
+               || Contains(job.MethodName, search)
+               || Contains(job.Queue, search);
+    }
+
     private static bool Contains(string? value, string search)
         => value?.Contains(search, StringComparison.OrdinalIgnoreCase) ?? false;
 
@@ -102,4 +117,18 @@ public sealed class RecurringJobStorage(JobStorage jobStorage)
             LastJobId: job.LastJobId,
             Error: job.Error,
             IsDisabled: job.Removed);
+
+    private static RecurringJobSummary CreateStorageErrorSummary()
+        => new(
+            Id: "storage-error",
+            CronExpression: null,
+            Queue: null,
+            JobType: null,
+            MethodName: null,
+            NextExecution: null,
+            LastExecution: null,
+            LastJobId: null,
+            Error: "Recurring job data is temporarily unavailable.",
+            IsDisabled: true,
+            IsSystemError: true);
 }

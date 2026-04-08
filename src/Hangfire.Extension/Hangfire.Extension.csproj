@@ -9,7 +9,7 @@
     <RootNamespace>Hangfire.Extension</RootNamespace>
     <PackageId>Hangfire.Extension</PackageId>
     <PackageReadmeFile>README.md</PackageReadmeFile>
-    <Version>0.1.24</Version>
+    <Version>0.1.29</Version>
     <Title>Hangfire Extension</Title>
     <Description>Recurring job admin UI and helpers for Hangfire ASP.NET Core applications.</Description>
   </PropertyGroup>
@@ -21,9 +21,12 @@
   <ItemGroup>
     <EmbeddedResource Include="wwwroot\hangfire-extension\css\hangfire-extension.css"
                       LogicalName="Hangfire.Extension.RecurringJobs.Styles.css" />
+    <EmbeddedResource Include="wwwroot\hangfire-extension\js\recurring-jobs.js"
+                      LogicalName="Hangfire.Extension.RecurringJobs.Script.js" />
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="CronExpressionDescriptor" Version="2.45.0" />
     <PackageReference Include="Cronos" Version="0.11.1" />
     <PackageReference Include="Hangfire.AspNetCore" Version="1.8.23" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />

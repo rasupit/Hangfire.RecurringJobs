@@ -1,20 +1,17 @@
 using System.ComponentModel.DataAnnotations;
+using Hangfire.Extension.Models;
 using Hangfire.Extension.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 
 namespace Hangfire.Extension.Pages.RecurringJobs;
 
-public sealed class EditModel(RecurringJobAdminService recurringJobAdminService) : PageModel
+public sealed class EditModel(
+    RecurringJobAdminService recurringJobAdminService,
+    CronExpressionPreviewService cronExpressionPreviewService) : PageModel
 {
     [BindProperty(SupportsGet = true)]
     public string Id { get; set; } = string.Empty;
-
-    [BindProperty(SupportsGet = true)]
-    public string? Search { get; set; }
-
-    [BindProperty(SupportsGet = true)]
-    public int PageNumber { get; set; } = 1;
 
     [BindProperty]
     [Required]
@@ -23,6 +20,17 @@ public sealed class EditModel(RecurringJobAdminService recurringJobAdminService)
     public string? JobType { get; private set; }
 
     public string? MethodName { get; private set; }
+
+    public bool IsDisabled { get; private set; }
+
+    public RecurringJobCronPreview CronPreview { get; private set; }
+        = new(false, "Cron expression is required.", null, []);
+
+    [TempData]
+    public string? StatusMessage { get; set; }
+
+    [TempData]
+    public bool? StatusSucceeded { get; set; }
 
     public async Task<IActionResult> OnGetAsync(CancellationToken cancellationToken)
     {
@@ -50,7 +58,9 @@ public sealed class EditModel(RecurringJobAdminService recurringJobAdminService)
             return Page();
         }
 
-        return RedirectToPage("./Index", new { Search, PageNumber });
+        StatusMessage = result.Message;
+        StatusSucceeded = true;
+        return RedirectToPage("./Index");
     }
 
     private async Task<bool> LoadJobDetailsAsync(CancellationToken cancellationToken)
@@ -64,6 +74,8 @@ public sealed class EditModel(RecurringJobAdminService recurringJobAdminService)
         CronExpression = job.CronExpression ?? string.Empty;
         JobType = job.JobType;
         MethodName = job.MethodName;
+        IsDisabled = job.IsDisabled;
+        CronPreview = cronExpressionPreviewService.CreatePreview(CronExpression);
 
         return true;
     }
