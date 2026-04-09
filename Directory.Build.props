@@ -1,8 +1,0 @@
-<Project>
-  <PropertyGroup>
-    <LangVersion>preview</LangVersion>
-    <Nullable>enable</Nullable>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <NoWarn>$(NoWarn);NU1903</NoWarn>
-  </PropertyGroup>
-</Project>

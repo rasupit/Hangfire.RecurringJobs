@@ -9,3 +9,10 @@ TestResults/
 .env
 *.user
 *.suo
+Directory.Build.props
+NuGet.Config
+conventions.md
+DESIGN.md
+hangfire_recurring_job_admin_replacement_project_context.md
+docker-compose.yml
+site-theme.css
