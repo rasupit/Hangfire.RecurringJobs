@@ -11,4 +11,5 @@ public sealed record RecurringJobSummary(
     string? LastJobId,
     string? Error,
     bool IsDisabled,
-    bool IsSystemError = false);
+    bool IsSystemError = false,
+    bool IsStorageUnavailable = false);

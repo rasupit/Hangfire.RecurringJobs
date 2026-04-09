@@ -8,6 +8,8 @@ namespace Hangfire.RecurringJobs.Hangfire;
 
 public sealed class RecurringJobStorage(JobStorage jobStorage)
 {
+    public const string StorageUnavailableMessage = "Recurring job data is temporarily unavailable.";
+
     public Task<IReadOnlyList<RecurringJobSummary>> GetJobsAsync(CancellationToken cancellationToken = default)
     {
         try
@@ -22,7 +24,7 @@ public sealed class RecurringJobStorage(JobStorage jobStorage)
         }
         catch
         {
-            return Task.FromResult<IReadOnlyList<RecurringJobSummary>>([CreateStorageErrorSummary()]);
+            return Task.FromResult<IReadOnlyList<RecurringJobSummary>>([CreateStorageUnavailableSummary()]);
         }
     }
 
@@ -49,14 +51,16 @@ public sealed class RecurringJobStorage(JobStorage jobStorage)
         }
         catch
         {
-            var failedItems = new[] { CreateStorageErrorSummary() };
+            var failedItems = new[] { CreateStorageUnavailableSummary() };
 
             return new RecurringJobPage(
                 Items: failedItems,
                 Page: query.SafePage,
                 PageSize: query.SafePageSize,
                 TotalCount: failedItems.Length,
-                Search: query.Search);
+                Search: query.Search,
+                IsStorageUnavailable: true,
+                StorageErrorMessage: StorageUnavailableMessage);
         }
     }
 
@@ -72,7 +76,7 @@ public sealed class RecurringJobStorage(JobStorage jobStorage)
         }
         catch
         {
-            return Task.FromResult<RecurringJobSummary?>(null);
+            return Task.FromResult<RecurringJobSummary?>(CreateStorageUnavailableSummary(recurringJobId));
         }
     }
 
@@ -118,9 +122,9 @@ public sealed class RecurringJobStorage(JobStorage jobStorage)
             Error: job.Error,
             IsDisabled: job.Removed);
 
-    private static RecurringJobSummary CreateStorageErrorSummary()
+    private static RecurringJobSummary CreateStorageUnavailableSummary(string id = "storage-unavailable")
         => new(
-            Id: "storage-error",
+            Id: id,
             CronExpression: null,
             Queue: null,
             JobType: null,
@@ -128,7 +132,8 @@ public sealed class RecurringJobStorage(JobStorage jobStorage)
             NextExecution: null,
             LastExecution: null,
             LastJobId: null,
-            Error: "Recurring job data is temporarily unavailable.",
+            Error: StorageUnavailableMessage,
             IsDisabled: true,
-            IsSystemError: true);
+            IsSystemError: true,
+            IsStorageUnavailable: true);
 }

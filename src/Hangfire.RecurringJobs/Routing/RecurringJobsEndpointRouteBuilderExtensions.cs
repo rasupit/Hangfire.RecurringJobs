@@ -1,5 +1,6 @@
 using Hangfire.RecurringJobs.Models;
 using Hangfire.RecurringJobs.Services;
+using Hangfire.RecurringJobs.Hangfire;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -46,6 +47,14 @@ public static class RecurringJobsEndpointRouteBuilderExtensions
             try
             {
                 var jobs = await service.GetJobsAsync(query, cancellationToken);
+                if (jobs.IsStorageUnavailable)
+                {
+                    return Results.Problem(
+                        title: "Recurring jobs unavailable",
+                        detail: jobs.StorageErrorMessage ?? RecurringJobStorage.StorageUnavailableMessage,
+                        statusCode: StatusCodes.Status503ServiceUnavailable);
+                }
+
                 return Results.Ok(jobs);
             }
             catch
@@ -65,9 +74,20 @@ public static class RecurringJobsEndpointRouteBuilderExtensions
             try
             {
                 var job = await service.GetJobAsync(id, cancellationToken);
-                return job is null
-                    ? Results.NotFound()
-                    : Results.Ok(job);
+                if (job is null)
+                {
+                    return Results.NotFound();
+                }
+
+                if (job.IsStorageUnavailable)
+                {
+                    return Results.Problem(
+                        title: "Recurring job unavailable",
+                        detail: job.Error ?? RecurringJobStorage.StorageUnavailableMessage,
+                        statusCode: StatusCodes.Status503ServiceUnavailable);
+                }
+
+                return Results.Ok(job);
             }
             catch
             {

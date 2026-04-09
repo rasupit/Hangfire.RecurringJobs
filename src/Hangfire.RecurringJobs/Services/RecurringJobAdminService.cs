@@ -133,14 +133,9 @@ public sealed class RecurringJobAdminService
         CancellationToken cancellationToken)
     {
         var storageJobs = await storage.GetJobsAsync(cancellationToken);
-        if (storageJobs.Count == 1 && storageJobs[0].IsSystemError)
+        if (storageJobs.Count == 1 && storageJobs[0].IsStorageUnavailable)
         {
-            return new RecurringJobPage(
-                [storageJobs[0]],
-                query.SafePage,
-                query.SafePageSize,
-                1,
-                query.Search);
+            return CreateStorageUnavailablePage(query, storageJobs[0].Error);
         }
 
         var storageJobsById = storageJobs
@@ -177,6 +172,11 @@ public sealed class RecurringJobAdminService
         }
 
         var job = await storage.GetJobAsync(recurringJobId, cancellationToken);
+        if (job?.IsStorageUnavailable == true)
+        {
+            return CreateStorageUnavailableSummary(definition, job.Error);
+        }
+
         return job ?? CreateDisabledSummary(definition);
     }
 
@@ -208,4 +208,42 @@ public sealed class RecurringJobAdminService
             LastJobId: null,
             Error: null,
             IsDisabled: true);
+
+    private RecurringJobPage CreateStorageUnavailablePage(RecurringJobQuery query, string? errorMessage)
+    {
+        var unavailableJobs = definitions.Values
+            .OrderBy(definition => definition.Id, StringComparer.OrdinalIgnoreCase)
+            .Select(definition => CreateStorageUnavailableSummary(definition, errorMessage))
+            .Where(job => MatchesSearch(job, query.Search))
+            .ToArray();
+
+        var items = unavailableJobs
+            .Skip((query.SafePage - 1) * query.SafePageSize)
+            .Take(query.SafePageSize)
+            .ToArray();
+
+        return new RecurringJobPage(
+            Items: items,
+            Page: query.SafePage,
+            PageSize: query.SafePageSize,
+            TotalCount: unavailableJobs.Length,
+            Search: query.Search,
+            IsStorageUnavailable: true,
+            StorageErrorMessage: errorMessage ?? RecurringJobStorage.StorageUnavailableMessage);
+    }
+
+    private static RecurringJobSummary CreateStorageUnavailableSummary(RecurringJobDefinition definition, string? errorMessage)
+        => new(
+            Id: definition.Id,
+            CronExpression: definition.CronExpression,
+            Queue: definition.Queue,
+            JobType: definition.Job.Type.FullName,
+            MethodName: definition.Job.Method.Name,
+            NextExecution: null,
+            LastExecution: null,
+            LastJobId: null,
+            Error: errorMessage ?? RecurringJobStorage.StorageUnavailableMessage,
+            IsDisabled: true,
+            IsSystemError: true,
+            IsStorageUnavailable: true);
 }

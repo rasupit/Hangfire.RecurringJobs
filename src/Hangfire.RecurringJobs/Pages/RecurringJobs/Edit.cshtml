@@ -3,6 +3,7 @@
 @inject Microsoft.Extensions.Options.IOptions<Hangfire.RecurringJobs.RecurringJobsOptions> HangfireOptions
 @{
     ViewData["Title"] = "Edit cron";
+    var disabledAttribute = Model.IsStorageUnavailable ? "disabled" : null;
 }
 
 <section class="d-grid gap-4 hfext-page-narrow"
@@ -18,6 +19,14 @@
         <a asp-page="./Index" class="btn btn-outline-secondary">Back to Recurring Jobs</a>
     </div>
 
+    @if (Model.IsStorageUnavailable)
+    {
+        <div class="alert alert-warning shadow-sm mb-0" role="alert">
+            @(Model.StorageErrorMessage ?? Hangfire.RecurringJobs.Hangfire.RecurringJobStorage.StorageUnavailableMessage)
+            Cron updates are temporarily unavailable until Hangfire storage can be reached again.
+        </div>
+    }
+
     <div class="card shadow-sm">
         <div class="card-body p-4">
             <div class="d-grid gap-2 mb-4">
@@ -32,13 +41,22 @@
                 <input asp-for="Id" type="hidden" />
                 <div>
                     <label asp-for="CronExpression" class="form-label"></label>
-                    <input asp-for="CronExpression" class="form-control" data-hfext-cron-input />
+                    <input asp-for="CronExpression"
+                           class="form-control"
+                           data-hfext-cron-input
+                           disabled="@disabledAttribute" />
                     <span asp-validation-for="CronExpression" class="text-danger small"></span>
                 </div>
                 @if (Model.IsDisabled)
                 {
                     <p class="small text-body-secondary mb-0">
                         Saving a disabled job will apply the new schedule and enable it again.
+                    </p>
+                }
+                @if (Model.IsStorageUnavailable)
+                {
+                    <p class="small text-body-secondary mb-0">
+                        The current schedule is shown from the code-based definition so the page stays usable without taking down the host application.
                     </p>
                 }
                 <div class="hfext-cron-preview" data-hfext-cron-preview>
@@ -72,7 +90,7 @@
                     }
                 </div>
                 <div class="d-flex flex-wrap justify-content-end gap-2">
-                    <button type="submit" class="btn btn-primary">Save</button>
+                    <button type="submit" class="btn btn-primary" disabled="@disabledAttribute">Save</button>
                     <a asp-page="./Index" class="btn btn-outline-secondary">Cancel</a>
                 </div>
             </form>

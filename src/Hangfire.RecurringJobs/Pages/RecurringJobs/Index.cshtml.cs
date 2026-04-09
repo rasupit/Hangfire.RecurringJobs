@@ -20,6 +20,10 @@ public sealed class IndexModel(RecurringJobAdminService recurringJobAdminService
 
     public int PageSize { get; private set; } = 50;
 
+    public bool IsStorageUnavailable { get; private set; }
+
+    public string? StorageErrorMessage { get; private set; }
+
     public int TotalPages => TotalCount == 0
         ? 0
         : (int)Math.Ceiling(TotalCount / (double)PageSize);
@@ -44,6 +48,8 @@ public sealed class IndexModel(RecurringJobAdminService recurringJobAdminService
         TotalCount = page.TotalCount;
         PageSize = page.PageSize;
         PageNumber = page.Page;
+        IsStorageUnavailable = page.IsStorageUnavailable;
+        StorageErrorMessage = page.StorageErrorMessage;
     }
 
     public async Task<IActionResult> OnPostTriggerAsync(string id, CancellationToken cancellationToken)

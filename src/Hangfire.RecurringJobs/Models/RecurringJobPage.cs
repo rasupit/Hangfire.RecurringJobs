@@ -5,7 +5,9 @@ public sealed record RecurringJobPage(
     int Page,
     int PageSize,
     int TotalCount,
-    string? Search = null)
+    string? Search = null,
+    bool IsStorageUnavailable = false,
+    string? StorageErrorMessage = null)
 {
     public int TotalPages => TotalCount == 0
         ? 0

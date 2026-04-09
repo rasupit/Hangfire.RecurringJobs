@@ -23,6 +23,10 @@ public sealed class EditModel(
 
     public bool IsDisabled { get; private set; }
 
+    public bool IsStorageUnavailable { get; private set; }
+
+    public string? StorageErrorMessage { get; private set; }
+
     public RecurringJobCronPreview CronPreview { get; private set; }
         = new(false, "Cron expression is required.", null, []);
 
@@ -75,6 +79,8 @@ public sealed class EditModel(
         JobType = job.JobType;
         MethodName = job.MethodName;
         IsDisabled = job.IsDisabled;
+        IsStorageUnavailable = job.IsStorageUnavailable;
+        StorageErrorMessage = job.Error;
         CronPreview = cronExpressionPreviewService.CreatePreview(CronExpression);
 
         return true;

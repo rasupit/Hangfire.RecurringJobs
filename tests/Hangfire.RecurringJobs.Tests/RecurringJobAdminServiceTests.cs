@@ -63,8 +63,56 @@ public sealed class RecurringJobAdminServiceTests : IDisposable
 #pragma warning restore CS0618
     }
 
+    [Fact]
+    public async Task GetJobsAsync_ReturnsUnavailableRows_WhenStorageCannotBeRead()
+    {
+        var definition = new RecurringJobDefinition(
+            "job-1",
+            Job.FromExpression(() => SampleJob.Run()),
+            "0 * * * *",
+            TimeZoneInfo.Utc,
+            "default");
+        var jobStorage = Substitute.For<JobStorage>();
+        jobStorage.GetConnection().Returns(_ => throw new InvalidOperationException("Storage unavailable."));
+        var service = CreateSubject(new RecurringJobStorage(jobStorage), definition);
+
+        var page = await service.GetJobsAsync(new RecurringJobQuery(Page: 1, PageSize: 10));
+
+        Assert.True(page.IsStorageUnavailable);
+        Assert.Equal(RecurringJobStorage.StorageUnavailableMessage, page.StorageErrorMessage);
+        Assert.Single(page.Items);
+        Assert.Equal(definition.Id, page.Items[0].Id);
+        Assert.True(page.Items[0].IsSystemError);
+        Assert.True(page.Items[0].IsStorageUnavailable);
+    }
+
+    [Fact]
+    public async Task GetJobAsync_ReturnsUnavailableSummary_WhenStorageCannotBeRead()
+    {
+        var definition = new RecurringJobDefinition(
+            "job-1",
+            Job.FromExpression(() => SampleJob.Run()),
+            "0 * * * *",
+            TimeZoneInfo.Utc,
+            "default");
+        var jobStorage = Substitute.For<JobStorage>();
+        jobStorage.GetConnection().Returns(_ => throw new InvalidOperationException("Storage unavailable."));
+        var service = CreateSubject(new RecurringJobStorage(jobStorage), definition);
+
+        var job = await service.GetJobAsync(definition.Id);
+
+        Assert.NotNull(job);
+        Assert.Equal(definition.Id, job!.Id);
+        Assert.True(job.IsSystemError);
+        Assert.True(job.IsStorageUnavailable);
+        Assert.Equal(RecurringJobStorage.StorageUnavailableMessage, job.Error);
+    }
+
     private RecurringJobAdminService CreateSubject(params RecurringJobDefinition[] definitions)
-        => new(new RecurringJobStorage(storage), definitions, new CronExpressionValidator(), recurringJobManager);
+        => CreateSubject(new RecurringJobStorage(storage), definitions);
+
+    private RecurringJobAdminService CreateSubject(RecurringJobStorage recurringJobStorage, params RecurringJobDefinition[] definitions)
+        => new(recurringJobStorage, definitions, new CronExpressionValidator(), recurringJobManager);
 
     public void Dispose()
     {

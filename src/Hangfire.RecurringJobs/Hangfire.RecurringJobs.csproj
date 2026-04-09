@@ -12,7 +12,13 @@
     <PackageLicenseFile>LICENSE</PackageLicenseFile>
     <Version>0.1.30</Version>
     <Title>Hangfire Recurring Jobs</Title>
+    <Authors>Ricky Supit</Authors>
     <Description>Recurring job admin UI and helpers for Hangfire ASP.NET Core applications.</Description>
+    <PackageTags>hangfire;aspnetcore;recurring-jobs;admin;razor-pages</PackageTags>
+    <PackageProjectUrl>https://github.com/rasupit/Hangfire.RecurringJobs</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/rasupit/Hangfire.RecurringJobs.git</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
   </PropertyGroup>
 
   <ItemGroup>
