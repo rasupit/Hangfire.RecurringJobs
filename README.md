@@ -2,6 +2,8 @@
 
 `Rasupit.Hangfire.RecurringJobs` is a small ASP.NET Core admin surface for Hangfire recurring jobs.
 
+[NuGet package](https://www.nuget.org/packages/Rasupit.Hangfire.RecurringJobs)
+
 It is meant to plug into an existing ASP.NET Core application that already uses Hangfire and already owns its real storage configuration.
 
 ## What It Provides
