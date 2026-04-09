@@ -20,7 +20,7 @@ jobs:
           dotnet-version: 10.0.x
 
       - name: Restore
-        run: dotnet restore Hangfire.RecurringJobs.slnx --configfile NuGet.Config
+        run: dotnet restore Hangfire.RecurringJobs.slnx
 
       - name: Build
         run: dotnet build Hangfire.RecurringJobs.slnx --configuration Release --no-restore
