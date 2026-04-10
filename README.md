@@ -144,7 +144,6 @@ builder.Services.AddHangfireRecurringJobs(options =>
 {
     options.RoutePrefix = "/recurring-jobs";
     options.RequireAuthorization = false;
-    options.DisplayTimeZone = TimeZoneInfo.FindSystemTimeZoneById("Australia/Brisbane");
     options.Styles.Add("/lib/bootstrap/dist/css/bootstrap.min.css");
     options.Styles.Add("/css/site.css");
 });
