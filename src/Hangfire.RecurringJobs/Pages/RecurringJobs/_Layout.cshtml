@@ -19,9 +19,10 @@
         .hfext-action-btn .bi{width:1rem;height:1rem}
         .bi{display:inline-block;vertical-align:-.125em;fill:currentColor}
         /* Native dialog (cron editor popup) */
-        .hfext-dialog{width:min(38rem,calc(100vw - 1.5rem));border:0;border-radius:1rem;padding:0;box-shadow:rgba(0,0,0,.18) 0 24px 80px}
+        .hfext-dialog{width:min(38rem,calc(100vw - 1.5rem));max-height:calc(100dvh - 3rem);border:0;border-radius:1rem;padding:0;box-shadow:rgba(0,0,0,.18) 0 24px 80px}
+        .hfext-dialog[open]{display:flex;flex-direction:column;overflow:hidden}
         .hfext-dialog::backdrop{background:rgba(15,23,42,.4);backdrop-filter:blur(6px)}
-        .hfext-dialog form{padding:1.5rem}
+        .hfext-dialog form{padding:1.5rem;overflow-y:auto;flex:1}
         /* Cron preview */
         .hfext-cron-preview{display:grid;gap:.75rem;padding:1rem;border:1px solid rgba(0,0,0,.1);border-radius:.875rem;background:rgba(0,117,222,.04)}
         .hfext-cron-summary{font-weight:600;margin-bottom:0}
@@ -42,7 +43,7 @@
         .hfext-jobs-table th:nth-child(1),.hfext-jobs-table td:nth-child(1){word-break:break-word}
         .hfext-jobs-table th:nth-child(2),.hfext-jobs-table td:nth-child(2){width:22%}
         @@media (max-width:900px){.hfext-jobs-table th:nth-child(2),.hfext-jobs-table td:nth-child(2),.hfext-jobs-table th:last-child,.hfext-jobs-table td:last-child{width:auto}}
-        @@media (max-width:640px){.hfext-dialog{width:100vw;max-width:100vw;min-height:100vh;margin:0;border-radius:0}.hfext-dialog form{min-height:100vh;align-content:start;padding:1rem}.hfext-toast-region{top:auto;right:.75rem;bottom:.75rem;left:.75rem}.hfext-toast{width:100%}}
+        @@media (max-width:640px){.hfext-dialog{width:100vw;max-width:100vw;max-height:100dvh;margin:0;border-radius:0}.hfext-dialog form{align-content:start;padding:1rem}.hfext-toast-region{top:auto;right:.75rem;bottom:.75rem;left:.75rem}.hfext-toast{width:100%}}
     </style>
     @if (HangfireOptions.Value.UseEmbeddedStyles)
     {
