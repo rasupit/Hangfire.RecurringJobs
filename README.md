@@ -144,12 +144,15 @@ builder.Services.AddHangfireRecurringJobs(options =>
 {
     options.RoutePrefix = "/recurring-jobs";
     options.RequireAuthorization = false;
+    options.DisplayTimeZone = TimeZoneInfo.FindSystemTimeZoneById("Australia/Brisbane");
     options.Styles.Add("/lib/bootstrap/dist/css/bootstrap.min.css");
     options.Styles.Add("/css/site.css");
 });
 ```
 
-If `Styles` is not configured, the library inlines its embedded fallback theme automatically. If `Styles` contains entries, the library still keeps its embedded scoped base styles and then renders each configured stylesheet link in order so hosts can layer Bootstrap and site theme CSS on top.
+If `Styles` is not configured, the library inlines its embedded Bootstrap-compatible theme automatically.
+
+If `Styles` contains entries, the library always injects a small `<style>` block for its custom components (the toggle switch, cron editor dialog, and toast notifications — none of which have a Bootstrap equivalent) and then renders each configured stylesheet link in order. This means the configured stylesheets own all the standard Bootstrap utility and layout styling, while the library keeps only the component rules it cannot delegate to Bootstrap.
 
 ## Registered Definitions
 

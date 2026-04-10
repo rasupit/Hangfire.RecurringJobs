@@ -5,10 +5,49 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@ViewData["Title"] - Hangfire.RecurringJobs</title>
+    <style>
+        /* Toggle switch */
+        .hfext-switch{display:inline-flex;align-items:center;justify-content:flex-start;gap:.75rem;min-height:auto;padding:0;border:0;background:transparent;color:inherit;cursor:pointer;font:inherit}
+        .hfext-switch:hover{transform:none}
+        .hfext-switch-track{position:relative;width:3rem;height:1.75rem;border-radius:9999px;background:rgba(0,0,0,.12);transition:background-color 120ms ease}
+        .hfext-switch-thumb{position:absolute;top:.125rem;left:.125rem;width:1.5rem;height:1.5rem;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.2);transition:transform 120ms ease}
+        .hfext-switch.is-on .hfext-switch-track{background:rgba(42,157,153,.35)}
+        .hfext-switch.is-on .hfext-switch-thumb{transform:translateX(1.25rem)}
+        /* Action buttons */
+        .hfext-action-row form{margin:0}
+        .hfext-action-btn{width:2.5rem;min-width:2.5rem;height:2.5rem;min-height:2.5rem;padding:0;border-radius:.75rem}
+        .hfext-action-btn .bi{width:1rem;height:1rem}
+        .bi{display:inline-block;vertical-align:-.125em;fill:currentColor}
+        /* Native dialog (cron editor popup) */
+        .hfext-dialog{width:min(38rem,calc(100vw - 1.5rem));border:0;border-radius:1rem;padding:0;box-shadow:rgba(0,0,0,.18) 0 24px 80px}
+        .hfext-dialog::backdrop{background:rgba(15,23,42,.4);backdrop-filter:blur(6px)}
+        .hfext-dialog form{padding:1.5rem}
+        /* Cron preview */
+        .hfext-cron-preview{display:grid;gap:.75rem;padding:1rem;border:1px solid rgba(0,0,0,.1);border-radius:.875rem;background:rgba(0,117,222,.04)}
+        .hfext-cron-summary{font-weight:600;margin-bottom:0}
+        .hfext-cron-summary.is-invalid{color:#dd5b00}
+        .hfext-cron-summary.is-valid{color:#1e6f6c}
+        .hfext-cron-occurrences{margin:0;padding-left:1rem}
+        /* Toast notifications */
+        .hfext-toast-region{position:fixed;top:1rem;right:1rem;z-index:1200;display:grid;gap:.75rem;pointer-events:none}
+        .hfext-toast{width:min(24rem,calc(100vw - 2rem));padding:1rem 1rem .9rem;border:1px solid rgba(0,0,0,.1);border-radius:1rem;background:rgba(255,255,255,.96);box-shadow:rgba(0,0,0,.18) 0 18px 40px;opacity:0;transform:translateY(-.5rem);transition:opacity 160ms ease,transform 160ms ease}
+        .hfext-toast.is-visible{opacity:1;transform:translateY(0)}
+        .hfext-toast.is-success{border-color:rgba(42,157,153,.3)}
+        .hfext-toast.is-error{border-color:rgba(221,91,0,.28)}
+        .hfext-toast-meta{display:flex;align-items:center;justify-content:space-between;gap:.75rem;margin-bottom:.5rem}
+        .hfext-toast-time{color:#615d59;font-size:.8rem}
+        .hfext-toast-message{margin:0;font-size:.92rem}
+        /* Page layout */
+        .hfext-page-narrow{max-width:760px}
+        .hfext-jobs-table th:nth-child(1),.hfext-jobs-table td:nth-child(1){word-break:break-word}
+        .hfext-jobs-table th:nth-child(2),.hfext-jobs-table td:nth-child(2){width:22%}
+        @@media (max-width:900px){.hfext-jobs-table th:nth-child(2),.hfext-jobs-table td:nth-child(2),.hfext-jobs-table th:last-child,.hfext-jobs-table td:last-child{width:auto}}
+        @@media (max-width:640px){.hfext-dialog{width:100vw;max-width:100vw;min-height:100vh;margin:0;border-radius:0}.hfext-dialog form{min-height:100vh;align-content:start;padding:1rem}.hfext-toast-region{top:auto;right:.75rem;bottom:.75rem;left:.75rem}.hfext-toast{width:100%}}
+    </style>
     @if (HangfireOptions.Value.UseEmbeddedStyles)
     {
         <style>
-                @Html.Raw(Hangfire.RecurringJobs.Services.RecurringJobsStyleProvider.GetStyles())
+            @Html.Raw(Hangfire.RecurringJobs.Services.RecurringJobsStyleProvider.GetStyles())
         </style>
     }
     else

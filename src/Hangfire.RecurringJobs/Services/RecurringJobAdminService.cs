@@ -200,6 +200,7 @@ public sealed class RecurringJobAdminService
         => new(
             Id: definition.Id,
             CronExpression: definition.CronExpression,
+            TimeZoneId: null,
             Queue: definition.Queue,
             JobType: definition.Job.Type.FullName,
             MethodName: definition.Job.Method.Name,
@@ -236,6 +237,7 @@ public sealed class RecurringJobAdminService
         => new(
             Id: definition.Id,
             CronExpression: definition.CronExpression,
+            TimeZoneId: null,
             Queue: definition.Queue,
             JobType: definition.Job.Type.FullName,
             MethodName: definition.Job.Method.Name,

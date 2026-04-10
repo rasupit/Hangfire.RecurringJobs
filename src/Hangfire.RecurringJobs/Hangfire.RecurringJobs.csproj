@@ -10,7 +10,7 @@
     <PackageId>Rasupit.Hangfire.RecurringJobs</PackageId>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <PackageLicenseFile>LICENSE</PackageLicenseFile>
-    <Version>0.1.32</Version>
+    <Version>0.1.33</Version>
     <Title>Hangfire Recurring Jobs</Title>
     <Authors>Ricky Supit</Authors>
     <Description>Recurring job admin UI and helpers for Hangfire ASP.NET Core applications.</Description>

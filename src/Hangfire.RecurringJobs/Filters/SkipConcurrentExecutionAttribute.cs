@@ -16,7 +16,10 @@ public sealed class SkipConcurrentExecutionAttribute(int timeoutInSeconds = 60) 
     {
         ArgumentNullException.ThrowIfNull(context);
 
-        var resource = $"{context.BackgroundJob.Job.Type.FullName ?? context.BackgroundJob.Job.Type.Name}.{context.BackgroundJob.Job.Method.Name}";
+        var recurringJobId = context.Connection.GetJobParameter(context.BackgroundJob.Id, "RecurringJobId");
+        var resource = !string.IsNullOrEmpty(recurringJobId)
+            ? $"Hangfire.RecurringJobs.SkipConcurrent.{recurringJobId}"
+            : $"{context.BackgroundJob.Job.Type.FullName ?? context.BackgroundJob.Job.Type.Name}.{context.BackgroundJob.Job.Method.Name}";
 
         try
         {

@@ -24,7 +24,7 @@ public sealed class CronExpressionPreviewService
         {
             var schedule = CronExpression.Parse(cronExpression, CronFormat.Standard);
             var description = ExpressionDescriptor.GetDescription(cronExpression);
-            var effectiveTimeZone = timeZone ?? TimeZoneInfo.Local;
+            var effectiveTimeZone = timeZone ?? TimeZoneInfo.Utc;
             var cursor = now ?? DateTimeOffset.Now;
             var upcomingOccurrences = new List<string>(capacity: 3);
 
@@ -36,7 +36,7 @@ public sealed class CronExpressionPreviewService
                     break;
                 }
 
-                upcomingOccurrences.Add(nextOccurrence.Value.ToLocalTime().ToString("yyyy-MM-dd HH:mm:ss zzz"));
+                upcomingOccurrences.Add(TimeZoneInfo.ConvertTime(nextOccurrence.Value, effectiveTimeZone).ToString("yyyy-MM-dd HH:mm zzz"));
                 cursor = nextOccurrence.Value;
             }
 

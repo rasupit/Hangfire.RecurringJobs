@@ -10,24 +10,29 @@ namespace Hangfire.RecurringJobs.Tests;
 public sealed class RecurringJobIntegrationTests
 {
     [Fact]
-    public async Task GetJobsAsync_ReturnsPagedResults_FromSQLiteStorage()
+    public async Task GetJobsAsync_ReturnsPaginatedResults()
     {
         using var fixture = new SQLiteStorageFixture();
         var recurringJobManager = new RecurringJobManager(fixture.Storage);
-
-        recurringJobManager.AddOrUpdate(
+        var alphaDefinition = new RecurringJobDefinition(
             "job-alpha",
             Job.FromExpression(() => SampleRecurringJobs.RunAlpha()),
-            "0 * * * *");
-
-        recurringJobManager.AddOrUpdate(
+            "0 * * * *", TimeZoneInfo.Utc, "default");
+        var betaDefinition = new RecurringJobDefinition(
             "job-beta",
             Job.FromExpression(() => SampleRecurringJobs.RunBeta()),
-            "0 12 * * *");
+            "0 12 * * *", TimeZoneInfo.Utc, "default");
 
-        var storage = new RecurringJobStorage(fixture.Storage);
+        recurringJobManager.AddOrUpdate("job-alpha", alphaDefinition.Job, "0 * * * *");
+        recurringJobManager.AddOrUpdate("job-beta", betaDefinition.Job, "0 12 * * *");
 
-        var page = await storage.GetJobsAsync(new RecurringJobQuery(Page: 1, PageSize: 1, Search: "job"));
+        var service = new RecurringJobAdminService(
+            new RecurringJobStorage(fixture.Storage),
+            [alphaDefinition, betaDefinition],
+            new CronExpressionValidator(),
+            recurringJobManager);
+
+        var page = await service.GetJobsAsync(new RecurringJobQuery(Page: 1, PageSize: 1, Search: "job"));
 
         Assert.Equal(2, page.TotalCount);
         Assert.Single(page.Items);

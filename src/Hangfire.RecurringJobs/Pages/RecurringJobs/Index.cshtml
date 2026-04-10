@@ -105,12 +105,16 @@
                             <td>
                                 <code data-hfext-cron-expression-display>@(job.CronExpression ?? "-")</code>
                                 <div class="small text-body-secondary mt-1" data-hfext-next-execution>
-                                    Next: @(job.NextExecution?.ToLocalTime().ToString("yyyy-MM-dd HH:mm:ss zzz") ?? "-")
+                                    @{
+                                        TimeZoneInfo.TryFindSystemTimeZoneById(job.TimeZoneId ?? "UTC", out var jobTz);
+                                        jobTz ??= TimeZoneInfo.Utc;
+                                    }
+                                    Next: @(job.NextExecution.HasValue ? TimeZoneInfo.ConvertTime(job.NextExecution.Value, jobTz).ToString("yyyy-MM-dd HH:mm zzz") : "-")
                                 </div>
                             </td>
                             <td>
                                 <div data-hfext-last-execution>
-                                    Last: @(job.LastExecution?.ToLocalTime().ToString("yyyy-MM-dd HH:mm:ss zzz") ?? "-")
+                                    Last: @(job.LastExecution.HasValue ? TimeZoneInfo.ConvertTime(job.LastExecution.Value, jobTz).ToString("yyyy-MM-dd HH:mm zzz") : "-")
                                 </div>
                                 <div class="small text-body-secondary" data-hfext-last-job-id>
                                     Last job id: @(job.LastJobId ?? "-")
@@ -134,10 +138,10 @@
                                 }
                                 else
                                 {
-                                    <form method="post" asp-page-handler="SetEnabled" class="hfext-status-form" data-hfext-inline-form="toggle">
+                                    <form method="post" asp-page-handler="SetEnabled" class="d-flex flex-column gap-2 mb-0" data-hfext-inline-form="toggle">
                                         <input type="hidden" name="id" value="@job.Id" />
                                         <input type="hidden" name="enabled" value="@(job.IsDisabled.ToString().ToLowerInvariant())" data-hfext-enabled-input />
-                                        <div class="hfext-status-copy">
+                                        <div class="d-flex align-items-center">
                                             <span class="badge @(job.IsDisabled ? "text-bg-secondary" : "text-bg-success")" data-hfext-status-badge>
                                                 @(job.IsDisabled ? "Disabled" : "Active")
                                             </span>
@@ -150,7 +154,7 @@
                                             <span class="hfext-switch-track" aria-hidden="true">
                                                 <span class="hfext-switch-thumb"></span>
                                             </span>
-                                            <span class="hfext-switch-label">@(job.IsDisabled ? "Enable" : "Disable")</span>
+                                            <span class="small fw-semibold">@(job.IsDisabled ? "Enable" : "Disable")</span>
                                         </button>
                                     </form>
                                 }
@@ -177,6 +181,8 @@
                                     {
                                         <a asp-page="./Edit"
                                            asp-route-id="@job.Id"
+                                           asp-route-returnSearch="@Model.Search"
+                                           asp-route-returnPage="@(Model.PageNumber > 1 ? Model.PageNumber : null)"
                                            class="btn btn-sm btn-primary hfext-action-btn"
                                            title="Edit cron"
                                            aria-label="Edit cron for @job.Id"
@@ -185,6 +191,7 @@
                                            data-hfext-job-type="@job.JobType"
                                            data-hfext-method-name="@job.MethodName"
                                            data-hfext-cron-expression="@job.CronExpression"
+                                           data-hfext-time-zone-id="@job.TimeZoneId"
                                            data-hfext-is-disabled="@job.IsDisabled.ToString().ToLowerInvariant()">
                                             <svg class="bi" aria-hidden="true" viewBox="0 0 16 16" fill="currentColor">
                                                 <path d="m12.146.146 3.708 3.708a.5.5 0 0 1 0 .708l-9.5 9.5L3 15l.938-3.354 9.5-9.5a.5.5 0 0 1 .708 0M11.207 3 13 4.793 14.793 3 13 1.207zM12.5 5.293 10.707 3.5 4.5 9.707V11.5h1.793z" />

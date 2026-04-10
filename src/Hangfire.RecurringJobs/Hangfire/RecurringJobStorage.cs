@@ -28,42 +28,6 @@ public sealed class RecurringJobStorage(JobStorage jobStorage)
         }
     }
 
-    public async Task<RecurringJobPage> GetJobsAsync(RecurringJobQuery query, CancellationToken cancellationToken = default)
-    {
-        try
-        {
-            var jobs = await GetJobsAsync(cancellationToken);
-            var filteredJobs = jobs
-                .Where(job => MatchesSearch(job, query.Search))
-                .ToArray();
-
-            var items = filteredJobs
-                .Skip((query.SafePage - 1) * query.SafePageSize)
-                .Take(query.SafePageSize)
-                .ToArray();
-
-            return new RecurringJobPage(
-                Items: items,
-                Page: query.SafePage,
-                PageSize: query.SafePageSize,
-                TotalCount: filteredJobs.Length,
-                Search: query.Search);
-        }
-        catch
-        {
-            var failedItems = new[] { CreateStorageUnavailableSummary() };
-
-            return new RecurringJobPage(
-                Items: failedItems,
-                Page: query.SafePage,
-                PageSize: query.SafePageSize,
-                TotalCount: failedItems.Length,
-                Search: query.Search,
-                IsStorageUnavailable: true,
-                StorageErrorMessage: StorageUnavailableMessage);
-        }
-    }
-
     public Task<RecurringJobSummary?> GetJobAsync(string recurringJobId, CancellationToken cancellationToken = default)
     {
         try
@@ -80,39 +44,11 @@ public sealed class RecurringJobStorage(JobStorage jobStorage)
         }
     }
 
-    private static bool MatchesSearch(RecurringJobDto job, string? search)
-    {
-        if (string.IsNullOrWhiteSpace(search))
-        {
-            return true;
-        }
-
-        return Contains(job.Id, search)
-               || Contains(job.Job?.Type.Name, search)
-               || Contains(job.Job?.Method.Name, search)
-               || Contains(job.Queue, search);
-    }
-
-    private static bool MatchesSearch(RecurringJobSummary job, string? search)
-    {
-        if (string.IsNullOrWhiteSpace(search))
-        {
-            return true;
-        }
-
-        return Contains(job.Id, search)
-               || Contains(job.JobType, search)
-               || Contains(job.MethodName, search)
-               || Contains(job.Queue, search);
-    }
-
-    private static bool Contains(string? value, string search)
-        => value?.Contains(search, StringComparison.OrdinalIgnoreCase) ?? false;
-
     private static RecurringJobSummary Map(RecurringJobDto job)
         => new(
             Id: job.Id,
             CronExpression: job.Cron,
+            TimeZoneId: job.TimeZoneId,
             Queue: string.IsNullOrWhiteSpace(job.Queue) ? EnqueuedState.DefaultQueue : job.Queue,
             JobType: job.Job?.Type.FullName,
             MethodName: job.Job?.Method.Name,
@@ -126,6 +62,7 @@ public sealed class RecurringJobStorage(JobStorage jobStorage)
         => new(
             Id: id,
             CronExpression: null,
+            TimeZoneId: null,
             Queue: null,
             JobType: null,
             MethodName: null,

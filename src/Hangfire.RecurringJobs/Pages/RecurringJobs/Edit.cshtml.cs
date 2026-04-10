@@ -13,6 +13,12 @@ public sealed class EditModel(
     [BindProperty(SupportsGet = true)]
     public string Id { get; set; } = string.Empty;
 
+    [BindProperty(SupportsGet = true)]
+    public string? ReturnSearch { get; set; }
+
+    [BindProperty(SupportsGet = true)]
+    public int? ReturnPage { get; set; }
+
     [BindProperty]
     [Required]
     public string CronExpression { get; set; } = string.Empty;
@@ -22,6 +28,8 @@ public sealed class EditModel(
     public string? MethodName { get; private set; }
 
     public bool IsDisabled { get; private set; }
+
+    public string? TimeZoneId { get; private set; }
 
     public bool IsStorageUnavailable { get; private set; }
 
@@ -64,7 +72,11 @@ public sealed class EditModel(
 
         StatusMessage = result.Message;
         StatusSucceeded = true;
-        return RedirectToPage("./Index");
+        return RedirectToPage("./Index", new
+        {
+            search = ReturnSearch,
+            pageNumber = ReturnPage > 1 ? ReturnPage : null
+        });
     }
 
     private async Task<bool> LoadJobDetailsAsync(CancellationToken cancellationToken)
@@ -79,9 +91,12 @@ public sealed class EditModel(
         JobType = job.JobType;
         MethodName = job.MethodName;
         IsDisabled = job.IsDisabled;
+        TimeZoneId = job.TimeZoneId;
         IsStorageUnavailable = job.IsStorageUnavailable;
         StorageErrorMessage = job.Error;
-        CronPreview = cronExpressionPreviewService.CreatePreview(CronExpression);
+
+        TimeZoneInfo.TryFindSystemTimeZoneById(job.TimeZoneId ?? "UTC", out var jobTz);
+        CronPreview = cronExpressionPreviewService.CreatePreview(CronExpression, jobTz);
 
         return true;
     }

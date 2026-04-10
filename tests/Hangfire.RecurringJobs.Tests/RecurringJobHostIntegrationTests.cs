@@ -84,7 +84,8 @@ public sealed class RecurringJobHostIntegrationTests
 
         var content = await GetStringEnsuringSuccessAsync(client, "/recurring-jobs");
 
-        Assert.DoesNotContain("<style>", content, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("hfext-switch", content, StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("--app-font-sans", content, StringComparison.OrdinalIgnoreCase);
         Assert.Contains("/lib/bootstrap/dist/css/bootstrap.min.css", content, StringComparison.OrdinalIgnoreCase);
         Assert.Contains("/css/site.css", content, StringComparison.OrdinalIgnoreCase);
     }

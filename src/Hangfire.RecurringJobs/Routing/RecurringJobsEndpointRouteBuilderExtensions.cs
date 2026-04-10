@@ -127,11 +127,18 @@ public static class RecurringJobsEndpointRouteBuilderExtensions
 
         recurringJobs.MapGet("/preview", (
             [FromQuery] string cronExpression,
+            [FromQuery] string? timeZoneId,
             CronExpressionPreviewService previewService) =>
         {
             try
             {
-                return Results.Ok(previewService.CreatePreview(cronExpression));
+                TimeZoneInfo? timeZone = null;
+                if (!string.IsNullOrWhiteSpace(timeZoneId))
+                {
+                    TimeZoneInfo.TryFindSystemTimeZoneById(timeZoneId, out timeZone);
+                }
+
+                return Results.Ok(previewService.CreatePreview(cronExpression, timeZone));
             }
             catch
             {

@@ -16,7 +16,10 @@
             <p class="text-body-secondary mb-1">@Model.JobType</p>
             <p class="text-body-secondary mb-0">@Model.MethodName</p>
         </div>
-        <a asp-page="./Index" class="btn btn-outline-secondary">Back to Recurring Jobs</a>
+        <a asp-page="./Index"
+           asp-route-search="@Model.ReturnSearch"
+           asp-route-pageNumber="@(Model.ReturnPage > 1 ? Model.ReturnPage : null)"
+           class="btn btn-outline-secondary">Back to Recurring Jobs</a>
     </div>
 
     @if (Model.IsStorageUnavailable)
@@ -36,9 +39,12 @@
             <form method="post"
                   class="d-grid gap-3"
                   data-hfext-cron-editor
-                  data-hfext-cron-preview-url="@($"{HangfireOptions.Value.ApiRoutePrefix}/preview")">
+                  data-hfext-cron-preview-url="@($"{HangfireOptions.Value.ApiRoutePrefix}/preview")"
+                  data-hfext-time-zone-id="@Model.TimeZoneId">
                 <div asp-validation-summary="ModelOnly" class="text-danger"></div>
                 <input asp-for="Id" type="hidden" />
+                <input asp-for="ReturnSearch" type="hidden" />
+                <input asp-for="ReturnPage" type="hidden" />
                 <div>
                     <label asp-for="CronExpression" class="form-label"></label>
                     <input asp-for="CronExpression"
@@ -91,7 +97,10 @@
                 </div>
                 <div class="d-flex flex-wrap justify-content-end gap-2">
                     <button type="submit" class="btn btn-primary" disabled="@disabledAttribute">Save</button>
-                    <a asp-page="./Index" class="btn btn-outline-secondary">Cancel</a>
+                    <a asp-page="./Index"
+                       asp-route-search="@Model.ReturnSearch"
+                       asp-route-pageNumber="@(Model.ReturnPage > 1 ? Model.ReturnPage : null)"
+                       class="btn btn-outline-secondary">Cancel</a>
                 </div>
             </form>
         </div>

@@ -4,6 +4,7 @@
 bin/
 obj/
 artifacts/
+local-feed/
 TestResults/
 .appdata/
 .env

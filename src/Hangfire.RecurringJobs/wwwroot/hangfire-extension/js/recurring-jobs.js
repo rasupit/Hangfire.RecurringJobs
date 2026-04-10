@@ -1,4 +1,24 @@
 (function () {
+  var statusDismissTimer;
+
+  function formatDateTime(value) {
+    if (!value) {
+      return "-";
+    }
+
+    var d = new Date(value);
+    var pad = function (n) { return n < 10 ? "0" + n : String(n); };
+    var offset = -d.getTimezoneOffset();
+    var sign = offset >= 0 ? "+" : "-";
+    var absOffset = Math.abs(offset);
+    var offsetHours = pad(Math.floor(absOffset / 60));
+    var offsetMinutes = pad(absOffset % 60);
+
+    return d.getFullYear() + "-" + pad(d.getMonth() + 1) + "-" + pad(d.getDate()) +
+      " " + pad(d.getHours()) + ":" + pad(d.getMinutes()) +
+      " " + sign + offsetHours + ":" + offsetMinutes;
+  }
+
   function debounce(callback, delay) {
     let timerId;
 
@@ -20,6 +40,13 @@
     return root ? root.getAttribute("data-hfext-api-base") || "" : "";
   }
 
+  function scheduleStatusDismiss(status) {
+    window.clearTimeout(statusDismissTimer);
+    statusDismissTimer = window.setTimeout(function () {
+      status.hidden = true;
+    }, 5000);
+  }
+
   function setStatusMessage(message, succeeded, options) {
     const settings = options || {};
     const status = document.querySelector("[data-hfext-status-message]");
@@ -28,6 +55,7 @@
       status.textContent = message;
       status.classList.remove("alert-success", "alert-danger");
       status.classList.add(succeeded ? "alert-success" : "alert-danger");
+      scheduleStatusDismiss(status);
     }
 
     if (settings.toast !== false) {
@@ -152,12 +180,12 @@
 
     const nextExecution = row.querySelector("[data-hfext-next-execution]");
     if (nextExecution) {
-      nextExecution.textContent = "Next: " + (job.nextExecution ? new Date(job.nextExecution).toLocaleString() : "-");
+      nextExecution.textContent = "Next: " + formatDateTime(job.nextExecution);
     }
 
     const lastExecution = row.querySelector("[data-hfext-last-execution]");
     if (lastExecution) {
-      lastExecution.textContent = "Last: " + (job.lastExecution ? new Date(job.lastExecution).toLocaleString() : "-");
+      lastExecution.textContent = "Last: " + formatDateTime(job.lastExecution);
     }
 
     const lastJobId = row.querySelector("[data-hfext-last-job-id]");
@@ -196,6 +224,7 @@
       editLink.setAttribute("data-hfext-job-type", job.jobType || "");
       editLink.setAttribute("data-hfext-method-name", job.methodName || "");
       editLink.setAttribute("data-hfext-cron-expression", job.cronExpression || "");
+      editLink.setAttribute("data-hfext-time-zone-id", job.timeZoneId || "");
       editLink.setAttribute("data-hfext-is-disabled", String(!!job.isDisabled));
     }
 
@@ -288,6 +317,10 @@
       activeRequest = new AbortController();
       const url = new URL(previewUrl, window.location.origin);
       url.searchParams.set("cronExpression", input.value);
+      const timeZoneId = editor.getAttribute("data-hfext-time-zone-id");
+      if (timeZoneId) {
+        url.searchParams.set("timeZoneId", timeZoneId);
+      }
 
       fetch(url, {
         headers: {
@@ -399,6 +432,7 @@
         methodName.textContent = link.getAttribute("data-hfext-method-name") || "";
         disabledNote.hidden = link.getAttribute("data-hfext-is-disabled") !== "true";
         openFullPage.setAttribute("href", link.getAttribute("href") || "#");
+        editor.setAttribute("data-hfext-time-zone-id", link.getAttribute("data-hfext-time-zone-id") || "");
 
         dialog.showModal();
         input.focus();
@@ -446,4 +480,9 @@
   document.querySelectorAll("[data-hfext-cron-editor]").forEach(attachPreview);
   attachInlineForms();
   attachDialog();
+
+  var existingStatus = document.querySelector("[data-hfext-status-message]:not([hidden])");
+  if (existingStatus) {
+    scheduleStatusDismiss(existingStatus);
+  }
 })();
