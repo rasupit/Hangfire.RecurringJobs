@@ -7,29 +7,6 @@ namespace Hangfire.RecurringJobs;
 
 public static class RecurringJobDefinitionServiceCollectionExtensions
 {
-    public static IServiceCollection AddRecurringJobDefinition(
-        this IServiceCollection services,
-        string recurringJobId,
-        Job job,
-        string cronExpression,
-        TimeZoneInfo? timeZone = null,
-        string queue = "default")
-    {
-        ArgumentException.ThrowIfNullOrWhiteSpace(recurringJobId);
-        ArgumentNullException.ThrowIfNull(job);
-        ArgumentException.ThrowIfNullOrWhiteSpace(cronExpression);
-        ArgumentException.ThrowIfNullOrWhiteSpace(queue);
-
-        services.AddSingleton(new RecurringJobDefinition(
-            recurringJobId,
-            job,
-            cronExpression,
-            timeZone ?? TimeZoneInfo.Utc,
-            queue));
-
-        return services;
-    }
-
     public static IServiceCollection AddRecurringJobDefinition<T>(
         this IServiceCollection services,
         string recurringJobId,
@@ -40,7 +17,8 @@ public static class RecurringJobDefinitionServiceCollectionExtensions
     {
         ArgumentNullException.ThrowIfNull(methodCall);
 
-        return services.AddRecurringJobDefinition(recurringJobId, Job.FromExpression(methodCall), cronExpression, timeZone, queue);
+        return services.AddRecurringJobDefinitionCore(
+            recurringJobId, Job.FromExpression(methodCall), cronExpression, timeZone, queue);
     }
 
     public static IServiceCollection AddRecurringJobDefinition<T>(
@@ -53,6 +31,30 @@ public static class RecurringJobDefinitionServiceCollectionExtensions
     {
         ArgumentNullException.ThrowIfNull(methodCall);
 
-        return services.AddRecurringJobDefinition(recurringJobId, Job.FromExpression(methodCall), cronExpression, timeZone, queue);
+        return services.AddRecurringJobDefinitionCore(
+            recurringJobId, Job.FromExpression(methodCall), cronExpression, timeZone, queue);
+    }
+
+    private static IServiceCollection AddRecurringJobDefinitionCore(
+        this IServiceCollection services,
+        string recurringJobId,
+        Job job,
+        string cronExpression,
+        TimeZoneInfo? timeZone,
+        string queue)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(recurringJobId);
+        ArgumentNullException.ThrowIfNull(job);
+        ArgumentException.ThrowIfNullOrWhiteSpace(cronExpression);
+        ArgumentException.ThrowIfNullOrWhiteSpace(queue);
+
+        services.AddSingleton(new RecurringJobDefinition(
+            recurringJobId,
+            job,
+            cronExpression,
+            timeZone,
+            queue));
+
+        return services;
     }
 }

@@ -1,6 +1,7 @@
 using Hangfire;
 using Hangfire.RecurringJobs.Hangfire;
 using Hangfire.RecurringJobs.Models;
+using Microsoft.Extensions.Options;
 
 namespace Hangfire.RecurringJobs.Services;
 
@@ -10,16 +11,19 @@ public sealed class RecurringJobAdminService
     private readonly CronExpressionValidator cronExpressionValidator;
     private readonly IRecurringJobManager recurringJobManager;
     private readonly IReadOnlyDictionary<string, RecurringJobDefinition> definitions;
+    private readonly RecurringJobsOptions options;
 
     public RecurringJobAdminService(
         RecurringJobStorage storage,
         IEnumerable<RecurringJobDefinition> definitions,
         CronExpressionValidator cronExpressionValidator,
-        IRecurringJobManager recurringJobManager)
+        IRecurringJobManager recurringJobManager,
+        IOptions<RecurringJobsOptions> options)
     {
         this.storage = storage;
         this.cronExpressionValidator = cronExpressionValidator;
         this.recurringJobManager = recurringJobManager;
+        this.options = options.Value;
         this.definitions = definitions
             .GroupBy(definition => definition.Id, StringComparer.OrdinalIgnoreCase)
             .ToDictionary(group => group.Key, group => group.Last(), StringComparer.OrdinalIgnoreCase);
@@ -55,7 +59,7 @@ public sealed class RecurringJobAdminService
                 definition.CronExpression,
                 new RecurringJobOptions
                 {
-                    TimeZone = definition.TimeZone,
+                    TimeZone = definition.TimeZone ?? options.DefaultTimeZone,
                     QueueName = definition.Queue
                 });
 #pragma warning restore CS0618
@@ -95,7 +99,7 @@ public sealed class RecurringJobAdminService
                 cronExpression,
                 new RecurringJobOptions
                 {
-                    TimeZone = definition.TimeZone,
+                    TimeZone = definition.TimeZone ?? options.DefaultTimeZone,
                     QueueName = definition.Queue
                 });
 #pragma warning restore CS0618

@@ -6,5 +6,5 @@ public sealed record RecurringJobDefinition(
     string Id,
     Job Job,
     string CronExpression,
-    TimeZoneInfo TimeZone,
+    TimeZoneInfo? TimeZone,
     string Queue);

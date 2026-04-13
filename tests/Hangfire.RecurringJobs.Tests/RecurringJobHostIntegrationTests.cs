@@ -163,6 +163,20 @@ public sealed class RecurringJobHostIntegrationTests
         Assert.NotEmpty(preview.UpcomingOccurrences);
     }
 
+    [Fact]
+    public async Task AutoRegisterOnStartup_RegistersDefinitionsInHangfireStorage()
+    {
+        await using var factory = new RecurringJobsWebAppFactory(storageUnavailable: false, autoRegisterOnStartup: true);
+
+        using var client = factory.CreateHttpsClient();
+        var page = await client.GetFromJsonAsync<RecurringJobPage>(
+            "/recurring-jobs/api/jobs/recurring?page=1&pageSize=10");
+
+        Assert.NotNull(page);
+        Assert.Contains(page!.Items, item => item.Id == "host-job-alpha" && !item.IsDisabled);
+        Assert.Contains(page.Items, item => item.Id == "host-job-beta" && !item.IsDisabled);
+    }
+
     private sealed class RecurringJobsWebAppFactory : WebApplicationFactory<Program>, IAsyncDisposable
     {
         private readonly JobStorage storage;
@@ -171,14 +185,21 @@ public sealed class RecurringJobHostIntegrationTests
         private readonly string dataProtectionKeysDirectory;
         private readonly string[] stylesPaths;
         private readonly bool storageUnavailable;
+        private readonly bool autoRegisterOnStartup;
 
         public RecurringJobsWebAppFactory(params string[] stylesPaths)
-            : this(false, stylesPaths)
+            : this(storageUnavailable: false, autoRegisterOnStartup: false, stylesPaths)
         {
         }
 
         public RecurringJobsWebAppFactory(bool storageUnavailable, params string[] stylesPaths)
+            : this(storageUnavailable, autoRegisterOnStartup: false, stylesPaths)
         {
+        }
+
+        public RecurringJobsWebAppFactory(bool storageUnavailable, bool autoRegisterOnStartup, params string[] stylesPaths)
+        {
+            this.autoRegisterOnStartup = autoRegisterOnStartup;
             this.storageUnavailable = storageUnavailable;
             this.stylesPaths = stylesPaths;
             DatabasePath = Path.Combine(
@@ -222,6 +243,8 @@ public sealed class RecurringJobHostIntegrationTests
                     {
                         options.Styles.Add(stylePath);
                     }
+
+                    options.AutoRegisterOnStartup = autoRegisterOnStartup;
                 });
             });
             builder.ConfigureLogging(logging => logging.ClearProviders());

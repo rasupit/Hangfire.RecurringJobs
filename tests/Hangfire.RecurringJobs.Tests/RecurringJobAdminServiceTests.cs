@@ -4,6 +4,7 @@ using Hangfire.RecurringJobs.Hangfire;
 using Hangfire.RecurringJobs.Models;
 using Hangfire.RecurringJobs.Services;
 using Hangfire.Storage.SQLite;
+using Microsoft.Extensions.Options;
 using NSubstitute;
 
 namespace Hangfire.RecurringJobs.Tests;
@@ -112,7 +113,8 @@ public sealed class RecurringJobAdminServiceTests : IDisposable
         => CreateSubject(new RecurringJobStorage(storage), definitions);
 
     private RecurringJobAdminService CreateSubject(RecurringJobStorage recurringJobStorage, params RecurringJobDefinition[] definitions)
-        => new(recurringJobStorage, definitions, new CronExpressionValidator(), recurringJobManager);
+        => new(recurringJobStorage, definitions, new CronExpressionValidator(), recurringJobManager,
+               Options.Create(new RecurringJobsOptions()));
 
     public void Dispose()
     {

@@ -14,6 +14,10 @@ public sealed class RecurringJobsOptions
 
     public bool RequireAuthorization { get; set; } = true;
 
+    public TimeZoneInfo DefaultTimeZone { get; set; } = TimeZoneInfo.Utc;
+
+    public bool AutoRegisterOnStartup { get; set; } = false;
+
     public string AuthorizationPolicy { get; set; } = DefaultAuthorizationPolicy;
 
     public IList<string> Styles { get; } = [];

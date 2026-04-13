@@ -4,6 +4,7 @@ using Hangfire;
 using Hangfire.RecurringJobs.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
 
 namespace Hangfire.RecurringJobs;
@@ -39,6 +40,7 @@ public static class RecurringJobsServiceCollectionExtensions
         services.TryAddSingleton<IRecurringJobManager>(serviceProvider =>
             new RecurringJobManager(serviceProvider.GetRequiredService<JobStorage>()));
         services.TryAddSingleton<RecurringJobAdminService>();
+        services.AddHostedService<RecurringJobRegistrationHostedService>();
         services.AddRazorPages();
         services.AddOptions<RecurringJobsOptions>()
             .Configure(configure)

@@ -163,23 +163,38 @@ The recurring jobs list is definition-driven. Jobs that exist only in Hangfire s
 builder.Services.AddRecurringJobDefinition<ReportJobs>(
     "nightly-report",
     jobs => jobs.RunNightlyReport(),
-    "0 2 * * *",
-    TimeZoneInfo.Utc,
-    "default");
+    "0 2 * * *");
 ```
 
-You can also register with an explicit Hangfire `Job`:
+A per-definition timezone is optional. When omitted, the job inherits `RecurringJobsOptions.DefaultTimeZone` (defaults to `TimeZoneInfo.Utc`). Set it once in `AddHangfireRecurringJobs(...)` instead of repeating it on every definition:
 
 ```csharp
-using Hangfire.Common;
+builder.Services.AddHangfireRecurringJobs(options =>
+{
+    options.DefaultTimeZone = TimeZoneInfo.FindSystemTimeZoneById("Asia/Singapore");
+});
 
-builder.Services.AddRecurringJobDefinition(
+builder.Services.AddRecurringJobDefinition<ReportJobs>(
     "nightly-report",
-    Job.FromExpression<ReportJobs>(jobs => jobs.RunNightlyReport()),
-    "0 2 * * *",
-    TimeZoneInfo.Utc,
-    "default");
+    jobs => jobs.RunNightlyReport(),
+    "0 2 * * *");
 ```
+
+## Auto-Registration
+
+By default, job definitions are registered in DI only — they drive the admin UI but Hangfire's own storage is not touched until you enable or trigger the job from the UI.
+
+Set `AutoRegisterOnStartup = true` to have the library automatically call `AddOrUpdate` for every definition on startup:
+
+```csharp
+builder.Services.AddHangfireRecurringJobs(options =>
+{
+    options.DefaultTimeZone = TimeZoneInfo.FindSystemTimeZoneById("Asia/Singapore");
+    options.AutoRegisterOnStartup = true;
+});
+```
+
+This removes the need for a separate initializer class that manually calls `IRecurringJobManager.AddOrUpdate`. Because Hangfire itself does not auto-register recurring jobs, this is opt-in so consumers who prefer explicit control keep it.
 
 ## Full Example
 
@@ -200,13 +215,17 @@ builder.Services.AddHangfire(configuration =>
     // Reuse your existing Hangfire storage here.
 });
 
-builder.Services.AddHangfireRecurringJobs("/recurring-jobs");
+builder.Services.AddHangfireRecurringJobs(options =>
+{
+    options.RoutePrefix = "/recurring-jobs";
+    options.DefaultTimeZone = TimeZoneInfo.FindSystemTimeZoneById("Asia/Singapore");
+    options.AutoRegisterOnStartup = true;
+});
+
 builder.Services.AddRecurringJobDefinition<ReportJobs>(
     "nightly-report",
     jobs => jobs.RunNightlyReport(),
-    "0 2 * * *",
-    TimeZoneInfo.Utc,
-    "default");
+    "0 2 * * *");
 
 var app = builder.Build();
 

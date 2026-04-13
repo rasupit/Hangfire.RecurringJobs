@@ -4,6 +4,7 @@ using Hangfire.RecurringJobs.Hangfire;
 using Hangfire.RecurringJobs.Models;
 using Hangfire.RecurringJobs.Services;
 using Hangfire.Storage.SQLite;
+using Microsoft.Extensions.Options;
 
 namespace Hangfire.RecurringJobs.Tests;
 
@@ -30,7 +31,8 @@ public sealed class RecurringJobIntegrationTests
             new RecurringJobStorage(fixture.Storage),
             [alphaDefinition, betaDefinition],
             new CronExpressionValidator(),
-            recurringJobManager);
+            recurringJobManager,
+            Options.Create(new RecurringJobsOptions()));
 
         var page = await service.GetJobsAsync(new RecurringJobQuery(Page: 1, PageSize: 1, Search: "job"));
 
@@ -62,7 +64,8 @@ public sealed class RecurringJobIntegrationTests
             new RecurringJobStorage(fixture.Storage),
             [definition],
             new CronExpressionValidator(),
-            recurringJobManager);
+            recurringJobManager,
+            Options.Create(new RecurringJobsOptions()));
 
         var disableResult = await service.DisableAsync(definition.Id);
         var disabledJob = await service.GetJobAsync(definition.Id);
@@ -111,7 +114,8 @@ public sealed class RecurringJobIntegrationTests
             new RecurringJobStorage(fixture.Storage),
             [activeDefinition, disabledDefinition],
             new CronExpressionValidator(),
-            recurringJobManager);
+            recurringJobManager,
+            Options.Create(new RecurringJobsOptions()));
 
         var page = await service.GetJobsAsync(new RecurringJobQuery(Page: 1, PageSize: 20));
 
