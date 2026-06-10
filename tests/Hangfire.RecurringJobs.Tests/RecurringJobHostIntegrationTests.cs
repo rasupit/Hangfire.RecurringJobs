@@ -34,6 +34,19 @@ public sealed class RecurringJobHostIntegrationTests
     }
 
     [Fact]
+    public async Task RecurringJobsPage_RendersDefinitionBackedDisabledJobs()
+    {
+        await using var factory = new RecurringJobsWebAppFactory();
+        using var client = factory.CreateHttpsClient();
+
+        var content = await GetStringEnsuringSuccessAsync(client, "/recurring-jobs");
+
+        Assert.Contains("host-job-alpha", content);
+        Assert.Contains("data-is-disabled=\"true\"", content);
+        Assert.Contains("Enable host-job-alpha", content);
+    }
+
+    [Fact]
     public async Task RecurringJobsPage_UsesCanonicalEditUrl()
     {
         await using var factory = new RecurringJobsWebAppFactory();

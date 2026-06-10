@@ -31,13 +31,57 @@
     };
   }
 
-  function escapeJobId(jobId) {
-    return window.CSS && window.CSS.escape ? window.CSS.escape(jobId) : jobId.replace(/"/g, '\\"');
-  }
-
   function getApiBase() {
     const root = document.querySelector("[data-hfext-api-base]");
     return root ? root.getAttribute("data-hfext-api-base") || "" : "";
+  }
+
+  function getCurrentPageNumber() {
+    const pageNumber = Number(new URLSearchParams(window.location.search).get("pageNumber"));
+    return Number.isFinite(pageNumber) && pageNumber > 0 ? pageNumber : 1;
+  }
+
+  function getSearch() {
+    return new URLSearchParams(window.location.search).get("search") || "";
+  }
+
+  function getJobsUrl() {
+    const apiBase = getApiBase();
+    if (!apiBase) {
+      return "";
+    }
+
+    const url = new URL(apiBase, window.location.origin);
+    const search = getSearch();
+    url.searchParams.set("page", String(getCurrentPageNumber()));
+    url.searchParams.set("pageSize", "50");
+    if (search) {
+      url.searchParams.set("search", search);
+    }
+
+    return url.toString();
+  }
+
+  function getEditUrl(jobId) {
+    const currentPath = window.location.pathname.replace(/\/+$/, "");
+    const url = new URL(currentPath + "/" + encodeURIComponent(jobId) + "/edit", window.location.origin);
+    const search = getSearch();
+    const pageNumber = getCurrentPageNumber();
+    if (search) {
+      url.searchParams.set("returnSearch", search);
+    }
+
+    if (pageNumber > 1) {
+      url.searchParams.set("returnPage", String(pageNumber));
+    }
+
+    return url.pathname + url.search;
+  }
+
+  function findRow(jobId) {
+    return Array.prototype.find.call(
+      document.querySelectorAll("[data-hfext-job-row]"),
+      function (row) { return row.getAttribute("data-job-id") === jobId; }) || null;
   }
 
   function scheduleStatusDismiss(status) {
@@ -173,6 +217,15 @@
   function updateRow(row, job) {
     row.setAttribute("data-job-id", job.id);
 
+    const idDisplay = row.querySelector("[data-hfext-job-id]");
+    if (idDisplay) {
+      idDisplay.textContent = job.id || "";
+    }
+
+    row.querySelectorAll("[data-hfext-job-id-input]").forEach(function (input) {
+      input.value = job.id || "";
+    });
+
     const cronDisplay = row.querySelector("[data-hfext-cron-expression-display]");
     if (cronDisplay) {
       cronDisplay.textContent = job.cronExpression || "-";
@@ -209,6 +262,11 @@
       setElementHidden(errorBadgeWrapper, !job.error);
     }
 
+    const errorBadge = row.querySelector("[data-hfext-error-badge]");
+    if (errorBadge) {
+      errorBadge.textContent = job.isStorageUnavailable ? "Storage unavailable" : "Last run failed";
+    }
+
     const jobType = row.querySelector("[data-hfext-job-type]");
     if (jobType) {
       jobType.textContent = job.jobType || "";
@@ -221,6 +279,9 @@
 
     const editLink = row.querySelector("[data-hfext-edit-cron-link]");
     if (editLink) {
+      editLink.setAttribute("href", getEditUrl(job.id));
+      editLink.setAttribute("aria-label", "Edit cron for " + job.id);
+      editLink.setAttribute("data-hfext-job-id", job.id || "");
       editLink.setAttribute("data-hfext-job-type", job.jobType || "");
       editLink.setAttribute("data-hfext-method-name", job.methodName || "");
       editLink.setAttribute("data-hfext-cron-expression", job.cronExpression || "");
@@ -228,7 +289,70 @@
       editLink.setAttribute("data-hfext-is-disabled", String(!!job.isDisabled));
     }
 
+    const triggerButton = row.querySelector("[data-hfext-trigger-form] button");
+    if (triggerButton) {
+      triggerButton.setAttribute("aria-label", "Trigger " + job.id);
+    }
+
     updateStatus(row, job);
+  }
+
+  function createRow(job) {
+    const template = document.querySelector("[data-hfext-job-row-template]");
+    if (!template) {
+      return null;
+    }
+
+    const row = template.content.firstElementChild.cloneNode(true);
+    updateRow(row, job);
+    return row;
+  }
+
+  function renderRows(jobs) {
+    const body = document.querySelector("[data-hfext-jobs-body]");
+    if (!body || !Array.isArray(jobs)) {
+      return;
+    }
+
+    body.querySelectorAll("[data-hfext-job-row], [data-hfext-empty-row]").forEach(function (row) {
+      row.remove();
+    });
+
+    if (jobs.length === 0) {
+      const emptyRow = document.createElement("tr");
+      emptyRow.setAttribute("data-hfext-empty-row", "");
+      const cell = document.createElement("td");
+      cell.colSpan = 6;
+      cell.className = "text-center py-4 text-body-secondary";
+      cell.textContent = "No recurring jobs matched the current filter.";
+      emptyRow.appendChild(cell);
+      body.appendChild(emptyRow);
+      return;
+    }
+
+    jobs.forEach(function (job) {
+      const row = createRow(job);
+      if (row) {
+        body.appendChild(row);
+      }
+    });
+  }
+
+  function refreshRows() {
+    const jobsUrl = getJobsUrl();
+    if (!jobsUrl) {
+      return Promise.resolve();
+    }
+
+    return fetchJson(jobsUrl, {
+      headers: {
+        Accept: "application/json"
+      }
+    }).then(function (page) {
+      renderRows(page && page.items ? page.items : []);
+    }).catch(function () {
+      return Promise.resolve();
+    });
   }
 
   function fetchJson(url, options) {
@@ -256,9 +380,11 @@
         Accept: "application/json"
       }
     }).then(function (job) {
-      const row = document.querySelector('[data-hfext-job-row][data-job-id="' + escapeJobId(jobId) + '"]');
+      const row = findRow(jobId);
       if (row) {
         updateRow(row, job);
+      } else {
+        return refreshRows();
       }
     });
   }
@@ -362,42 +488,45 @@
       return;
     }
 
-    document.querySelectorAll("[data-hfext-inline-form]").forEach(function (form) {
-      form.addEventListener("submit", function (event) {
-        event.preventDefault();
+    document.addEventListener("submit", function (event) {
+      const form = event.target.closest("[data-hfext-inline-form]");
+      if (!form) {
+        return;
+      }
 
-        const formData = new FormData(form);
-        const jobId = formData.get("id");
-        if (!jobId) {
-          return;
-        }
+      event.preventDefault();
 
-        const operation = form.getAttribute("data-hfext-inline-form");
-        let request;
+      const formData = new FormData(form);
+      const jobId = formData.get("id");
+      if (!jobId) {
+        return;
+      }
 
-        if (operation === "toggle") {
-          const shouldEnable = formData.get("enabled") === "true";
-          request = fetchJson(apiBase + "/" + encodeURIComponent(jobId) + "/" + (shouldEnable ? "enable" : "disable"), {
-            method: "POST"
-          });
-        } else if (operation === "trigger") {
-          request = fetchJson(apiBase + "/" + encodeURIComponent(jobId) + "/trigger", {
-            method: "POST"
-          });
-        } else {
-          return;
-        }
+      const operation = form.getAttribute("data-hfext-inline-form");
+      let request;
 
-        request
-          .then(function (result) {
-            const showToast = operation !== "toggle";
-            setStatusMessage(result.message, !!result.succeeded, { toast: showToast });
-            return refreshRow(String(jobId));
-          })
-          .catch(function (error) {
-            setStatusMessage(error.message, false);
-          });
-      });
+      if (operation === "toggle") {
+        const shouldEnable = formData.get("enabled") === "true";
+        request = fetchJson(apiBase + "/" + encodeURIComponent(jobId) + "/" + (shouldEnable ? "enable" : "disable"), {
+          method: "POST"
+        });
+      } else if (operation === "trigger") {
+        request = fetchJson(apiBase + "/" + encodeURIComponent(jobId) + "/trigger", {
+          method: "POST"
+        });
+      } else {
+        return;
+      }
+
+      request
+        .then(function (result) {
+          const showToast = operation !== "toggle";
+          setStatusMessage(result.message, !!result.succeeded, { toast: showToast });
+          return refreshRow(String(jobId));
+        })
+        .catch(function (error) {
+          setStatusMessage(error.message, false);
+        });
     });
   }
 
@@ -421,24 +550,27 @@
       return;
     }
 
-    document.querySelectorAll("[data-hfext-edit-cron-link]").forEach(function (link) {
-      link.addEventListener("click", function (event) {
-        event.preventDefault();
+    document.addEventListener("click", function (event) {
+      const link = event.target.closest("[data-hfext-edit-cron-link]");
+      if (!link) {
+        return;
+      }
 
-        idField.value = link.getAttribute("data-hfext-job-id") || "";
-        input.value = link.getAttribute("data-hfext-cron-expression") || "";
-        jobId.textContent = idField.value;
-        jobType.textContent = link.getAttribute("data-hfext-job-type") || "";
-        methodName.textContent = link.getAttribute("data-hfext-method-name") || "";
-        disabledNote.hidden = link.getAttribute("data-hfext-is-disabled") !== "true";
-        openFullPage.setAttribute("href", link.getAttribute("href") || "#");
-        editor.setAttribute("data-hfext-time-zone-id", link.getAttribute("data-hfext-time-zone-id") || "");
+      event.preventDefault();
 
-        dialog.showModal();
-        input.focus();
-        input.select();
-        input.dispatchEvent(new Event("input", { bubbles: true }));
-      });
+      idField.value = link.getAttribute("data-hfext-job-id") || "";
+      input.value = link.getAttribute("data-hfext-cron-expression") || "";
+      jobId.textContent = idField.value;
+      jobType.textContent = link.getAttribute("data-hfext-job-type") || "";
+      methodName.textContent = link.getAttribute("data-hfext-method-name") || "";
+      disabledNote.hidden = link.getAttribute("data-hfext-is-disabled") !== "true";
+      openFullPage.setAttribute("href", link.getAttribute("href") || "#");
+      editor.setAttribute("data-hfext-time-zone-id", link.getAttribute("data-hfext-time-zone-id") || "");
+
+      dialog.showModal();
+      input.focus();
+      input.select();
+      input.dispatchEvent(new Event("input", { bubbles: true }));
     });
 
     dialog.querySelectorAll("[data-hfext-close-dialog]").forEach(function (button) {
@@ -480,6 +612,7 @@
   document.querySelectorAll("[data-hfext-cron-editor]").forEach(attachPreview);
   attachInlineForms();
   attachDialog();
+  refreshRows();
 
   var existingStatus = document.querySelector("[data-hfext-status-message]:not([hidden])");
   if (existingStatus) {

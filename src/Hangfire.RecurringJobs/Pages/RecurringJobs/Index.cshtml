@@ -78,10 +78,10 @@
                     <th class="text-end">Actions</th>
                 </tr>
                 </thead>
-                <tbody>
+                <tbody data-hfext-jobs-body>
                 @if (Model.Jobs.Count == 0)
                 {
-                    <tr>
+                    <tr data-hfext-empty-row>
                         <td colspan="6" class="text-center py-4 text-body-secondary">
                             @(Model.IsStorageUnavailable
                                 ? "Known recurring jobs will reappear with live execution details after Hangfire storage is available again."
@@ -154,7 +154,7 @@
                                             <span class="hfext-switch-track" aria-hidden="true">
                                                 <span class="hfext-switch-thumb"></span>
                                             </span>
-                                            <span class="small fw-semibold">@(job.IsDisabled ? "Enable" : "Disable")</span>
+                                            <span class="small fw-semibold hfext-switch-label">@(job.IsDisabled ? "Enable" : "Disable")</span>
                                         </button>
                                     </form>
                                 }
@@ -207,6 +207,83 @@
             </table>
         </div>
     </div>
+
+    <template data-hfext-job-row-template>
+        <tr data-hfext-job-row data-job-id="" data-is-disabled="true" data-is-system-error="false">
+            <td>
+                <div class="fw-semibold" data-hfext-job-id></div>
+                <div class="small text-body-secondary" data-hfext-job-type></div>
+                <div class="small text-body-secondary" data-hfext-method-name></div>
+            </td>
+            <td>
+                <code data-hfext-cron-expression-display>-</code>
+                <div class="small text-body-secondary mt-1" data-hfext-next-execution>Next: -</div>
+            </td>
+            <td>
+                <div data-hfext-last-execution>Last: -</div>
+                <div class="small text-body-secondary" data-hfext-last-job-id>Last job id: -</div>
+                <div class="mt-1" data-hfext-error-badge-wrapper hidden>
+                    <span class="badge text-bg-danger" data-hfext-error-badge>Last run failed</span>
+                </div>
+                <div class="small text-body-secondary mt-1" data-hfext-error-text hidden></div>
+            </td>
+            <td data-hfext-queue>-</td>
+            <td>
+                <form method="post" asp-page-handler="SetEnabled" class="d-flex flex-column gap-2 mb-0" data-hfext-inline-form="toggle">
+                    <input type="hidden" name="id" value="" data-hfext-job-id-input />
+                    <input type="hidden" name="enabled" value="true" data-hfext-enabled-input />
+                    <div class="d-flex align-items-center">
+                        <span class="badge text-bg-secondary" data-hfext-status-badge>Disabled</span>
+                    </div>
+                    <button type="submit"
+                            class="hfext-switch is-off"
+                            role="switch"
+                            aria-checked="false"
+                            aria-label="Enable">
+                        <span class="hfext-switch-track" aria-hidden="true">
+                            <span class="hfext-switch-thumb"></span>
+                        </span>
+                        <span class="small fw-semibold hfext-switch-label">Enable</span>
+                    </button>
+                </form>
+            </td>
+            <td class="text-end">
+                <div class="d-flex justify-content-end gap-2 hfext-action-row">
+                    <form method="post"
+                          asp-page-handler="Trigger"
+                          class="mb-0"
+                          data-hfext-trigger-form
+                          data-hfext-inline-form="trigger"
+                          hidden>
+                        <input type="hidden" name="id" value="" data-hfext-job-id-input />
+                        <button type="submit"
+                                class="btn btn-sm btn-outline-primary hfext-action-btn"
+                                title="Trigger"
+                                aria-label="Trigger">
+                            <svg class="bi" aria-hidden="true" viewBox="0 0 16 16" fill="currentColor">
+                                <path d="M10.804 8 5 4.633v6.734z" />
+                            </svg>
+                        </button>
+                    </form>
+                    <a href="#"
+                       class="btn btn-sm btn-primary hfext-action-btn"
+                       title="Edit cron"
+                       aria-label="Edit cron"
+                       data-hfext-edit-cron-link
+                       data-hfext-job-id=""
+                       data-hfext-job-type=""
+                       data-hfext-method-name=""
+                       data-hfext-cron-expression=""
+                       data-hfext-time-zone-id=""
+                       data-hfext-is-disabled="true">
+                        <svg class="bi" aria-hidden="true" viewBox="0 0 16 16" fill="currentColor">
+                            <path d="m12.146.146 3.708 3.708a.5.5 0 0 1 0 .708l-9.5 9.5L3 15l.938-3.354 9.5-9.5a.5.5 0 0 1 .708 0M11.207 3 13 4.793 14.793 3 13 1.207zM12.5 5.293 10.707 3.5 4.5 9.707V11.5h1.793z" />
+                        </svg>
+                    </a>
+                </div>
+            </td>
+        </tr>
+    </template>
 
     <dialog class="hfext-dialog" data-hfext-cron-dialog>
         <form method="post"
