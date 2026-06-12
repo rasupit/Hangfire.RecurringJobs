@@ -82,3 +82,27 @@ consumer code that runs before `app.Run()`. Consumers trying to reconcile/disabl
 pre-`Run` startup code will execute *before* registration and see nothing in storage. (This
 is exactly why Nd6Automation gates scheduling via `AutoRegisterOnStartup = IsProduction()`
 rather than via a pre-`Run` purge.) Worth a short note in the README.
+
+---
+
+## Enhancement candidate — serial-group execution filter (from Nd6Automation, 2026-06-13)
+
+**Need:** several jobs in a consumer app (Nd6Automation) drive a single-session external
+system (ND6 ERP) and must NEVER run in parallel with *each other* — but should WAIT for one
+another, not skip. `SkipConcurrentExecution` doesn't fit: it is per-job-id and cancels the
+duplicate instead of queueing behind it.
+
+**Idea (Ricky):** a class-level job-filter attribute marking a job as a member of a named
+serial group, e.g. `[SerialExecutionGroup("nd6-session")]`. Jobs sharing a group name are
+mutually exclusive with WAIT semantics — effectively ergonomic sugar over Hangfire's
+shared-resource distributed lock.
+
+**Prior art / baseline:** Hangfire.Core 1.8.23 already ships
+`DisableConcurrentExecutionAttribute(string resource, int timeoutSec)` — a shared resource
+name across job classes gives exactly this (blocks on the storage distributed lock; throws
+`DistributedLockTimeoutException` after the timeout, which AutomaticRetry then re-runs).
+Hangfire.Pro's Throttling package has first-class `Mutex`. The library version would add:
+class-level (not method-level) marking, a friendlier name, sensible default/configurable
+timeout, and possibly surfacing the "waiting on group X" state in the admin UI.
+
+**Status:** idea only — not blocking the consumer (it can use the OSS attribute directly).
