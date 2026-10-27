@@ -4,14 +4,17 @@ using Hangfire.Common;
 using Hangfire.RecurringJobs.Hangfire;
 using Hangfire.RecurringJobs.Models;
 using Hangfire.Storage.SQLite;
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.AspNetCore.DataProtection;
 using NSubstitute;
+
+// Web SDK hosts get this generated for referenced Razor class libraries; the test project uses the plain SDK.
+[assembly: Microsoft.AspNetCore.Mvc.ApplicationParts.ApplicationPart("Hangfire.RecurringJobs")]
 
 namespace Hangfire.RecurringJobs.Tests;
 
@@ -190,7 +193,7 @@ public sealed class RecurringJobHostIntegrationTests
         Assert.Contains(page.Items, item => item.Id == "host-job-beta" && !item.IsDisabled);
     }
 
-    private sealed class RecurringJobsWebAppFactory : WebApplicationFactory<Program>, IAsyncDisposable
+    private sealed class RecurringJobsWebAppFactory : IAsyncDisposable
     {
         private readonly JobStorage storage;
         private readonly IRecurringJobManager recurringJobManager;
@@ -199,6 +202,7 @@ public sealed class RecurringJobHostIntegrationTests
         private readonly string[] stylesPaths;
         private readonly bool storageUnavailable;
         private readonly bool autoRegisterOnStartup;
+        private WebApplication? app;
 
         public RecurringJobsWebAppFactory(params string[] stylesPaths)
             : this(storageUnavailable: false, autoRegisterOnStartup: false, stylesPaths)
@@ -244,59 +248,88 @@ public sealed class RecurringJobHostIntegrationTests
 
         public string DatabasePath { get; }
 
-        protected override void ConfigureWebHost(IWebHostBuilder builder)
+        public IServiceProvider Services => EnsureStarted().Services;
+
+        // The library ships no host of its own, so the test builds the same minimal host a consumer would.
+        private WebApplication EnsureStarted()
         {
-            builder.UseEnvironment("Development");
-            builder.ConfigureServices(services =>
+            if (app is not null)
             {
-                services.PostConfigure<RecurringJobsOptions>(options =>
+                return app;
+            }
+
+            var builder = WebApplication.CreateBuilder(new WebApplicationOptions
+            {
+                ApplicationName = typeof(RecurringJobHostIntegrationTests).Assembly.GetName().Name,
+                EnvironmentName = Environments.Development
+            });
+            builder.WebHost.UseTestServer();
+            builder.Logging.ClearProviders();
+
+            var services = builder.Services;
+            services.AddAuthorizationBuilder()
+                .AddPolicy("RecurringJobAdmin", policy => policy.RequireAssertion(_ => true));
+            services.AddHangfire(configuration =>
+            {
+                configuration.UseSimpleAssemblyNameTypeSerializer();
+                configuration.UseRecommendedSerializerSettings();
+            });
+            services.AddHangfireRecurringJobs("/recurring-jobs");
+            services.PostConfigure<RecurringJobsOptions>(options =>
+            {
+                options.Styles.Clear();
+                foreach (var stylePath in stylesPaths)
                 {
-                    options.Styles.Clear();
-                    foreach (var stylePath in stylesPaths)
-                    {
-                        options.Styles.Add(stylePath);
-                    }
+                    options.Styles.Add(stylePath);
+                }
 
-                    options.AutoRegisterOnStartup = autoRegisterOnStartup;
-                });
+                options.AutoRegisterOnStartup = autoRegisterOnStartup;
             });
-            builder.ConfigureLogging(logging => logging.ClearProviders());
-            builder.ConfigureTestServices(services =>
-            {
-                services.AddDataProtection()
-                    .PersistKeysToFileSystem(new DirectoryInfo(dataProtectionKeysDirectory));
 
-                services.RemoveAll<JobStorage>();
-                services.RemoveAll<IRecurringJobManager>();
+            services.AddDataProtection()
+                .PersistKeysToFileSystem(new DirectoryInfo(dataProtectionKeysDirectory));
 
-                services.AddSingleton<JobStorage>(storage);
-                services.AddSingleton<IRecurringJobManager>(_ => recurringJobManager);
-                services.AddSingleton(new RecurringJobDefinition(
-                    "host-job-alpha",
-                    Job.FromExpression(() => SampleRecurringJobs.RunAlpha()),
-                    "0 * * * *",
-                    TimeZoneInfo.Utc,
-                    "default"));
-                services.AddSingleton(new RecurringJobDefinition(
-                    "host-job-beta",
-                    Job.FromExpression(() => SampleRecurringJobs.RunBeta()),
-                    "15 * * * *",
-                    TimeZoneInfo.Utc,
-                    "default"));
-                services.AddSingleton(new RecurringJobDefinition(
-                    "host-job-edit",
-                    Job.FromExpression(() => SampleRecurringJobs.RunAlpha()),
-                    "0 * * * *",
-                    TimeZoneInfo.Utc,
-                    "default"));
-            });
+            services.RemoveAll<JobStorage>();
+            services.RemoveAll<IRecurringJobManager>();
+
+            services.AddSingleton<JobStorage>(storage);
+            services.AddSingleton<IRecurringJobManager>(_ => recurringJobManager);
+            services.AddSingleton(new RecurringJobDefinition(
+                "host-job-alpha",
+                Job.FromExpression(() => SampleRecurringJobs.RunAlpha()),
+                "0 * * * *",
+                TimeZoneInfo.Utc,
+                "default"));
+            services.AddSingleton(new RecurringJobDefinition(
+                "host-job-beta",
+                Job.FromExpression(() => SampleRecurringJobs.RunBeta()),
+                "15 * * * *",
+                TimeZoneInfo.Utc,
+                "default"));
+            services.AddSingleton(new RecurringJobDefinition(
+                "host-job-edit",
+                Job.FromExpression(() => SampleRecurringJobs.RunAlpha()),
+                "0 * * * *",
+                TimeZoneInfo.Utc,
+                "default"));
+
+            app = builder.Build();
+            app.UseStatusCodePages();
+            app.UseRouting();
+            app.UseAuthorization();
+            app.MapHangfireRecurringJobsApi();
+            app.MapRazorPages();
+            app.StartAsync().GetAwaiter().GetResult();
+
+            return app;
         }
 
         public HttpClient CreateHttpsClient()
-            => CreateClient(new WebApplicationFactoryClientOptions
-            {
-                BaseAddress = new Uri("https://localhost")
-            });
+        {
+            var client = EnsureStarted().GetTestClient();
+            client.BaseAddress = new Uri("https://localhost");
+            return client;
+        }
 
         public async Task SeedRecurringJobAsync(string recurringJobId, Job job, string cronExpression)
         {
@@ -312,9 +345,14 @@ public sealed class RecurringJobHostIntegrationTests
             await Task.CompletedTask;
         }
 
-        public new async ValueTask DisposeAsync()
+        public async ValueTask DisposeAsync()
         {
-            await base.DisposeAsync();
+            if (app is not null)
+            {
+                await app.StopAsync();
+                await app.DisposeAsync();
+            }
+
             ownedSqliteStorage?.Dispose();
 
             if (ownedSqliteStorage is not null && File.Exists(DatabasePath))

@@ -74,3 +74,4 @@ Test files map to the area they cover:
 - `RecurringJobIntegrationTests` — storage integration
 - `RecurringJobPageTests` — page model behavior
 - `SkipConcurrentExecutionAttributeTests` — concurrency filter behavior
+- `LibraryAssemblyTests` — the library assembly ships no `Program` type or entry point (it would clash with hosts' `WebApplicationFactory<Program>`)

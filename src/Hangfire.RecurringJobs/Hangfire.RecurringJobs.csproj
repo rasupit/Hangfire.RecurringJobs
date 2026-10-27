@@ -1,16 +1,18 @@
-﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+﻿<Project Sdk="Microsoft.NET.Sdk.Razor">
 
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <IsPackable>true</IsPackable>
+    <AddRazorSupportForMvc>true</AddRazorSupportForMvc>
+    <StaticWebAssetBasePath>/</StaticWebAssetBasePath>
     <AssemblyName>Hangfire.RecurringJobs</AssemblyName>
     <RootNamespace>Hangfire.RecurringJobs</RootNamespace>
     <PackageId>Rasupit.Hangfire.RecurringJobs</PackageId>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <PackageLicenseFile>LICENSE</PackageLicenseFile>
-    <Version>0.2.1</Version>
+    <Version>0.2.2</Version>
     <Title>Hangfire Recurring Jobs</Title>
     <Authors>Ricky Supit</Authors>
     <Description>Recurring job admin UI and helpers for Hangfire ASP.NET Core applications.</Description>
@@ -37,6 +39,10 @@
                       LogicalName="Hangfire.RecurringJobs.Styles.css" />
     <EmbeddedResource Include="wwwroot\hangfire-extension\js\recurring-jobs.js"
                       LogicalName="Hangfire.RecurringJobs.Script.js" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
   </ItemGroup>
 
   <ItemGroup>
